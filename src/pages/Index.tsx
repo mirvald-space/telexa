@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { PostEditor } from '@/components/PostEditor';
 import { ScheduledPosts } from '@/components/ScheduledPosts';
 import { BotSettings } from '@/components/BotSettings';
-import { Calendar } from '@/components/ScheduleCalendar';
+import { Calendar as ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Send, Calendar as CalendarIcon, Settings, List, Clock, CheckCircle, AlertCircle, Plus, Activity, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -257,9 +256,9 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="flex items-center space-x-3 text-indigo-600">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex items-center space-x-3 text-gray-600">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
           <span className="text-lg font-medium">Loading your workspace...</span>
         </div>
       </div>
@@ -280,13 +279,13 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-white/20 sticky top-0 z-40">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -297,14 +296,14 @@ const Index = () => {
             
             <div className="flex items-center space-x-4">
               <Badge variant={isConnected ? 'default' : 'destructive'} className="text-xs">
-                <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-400' : 'bg-red-400'}`} />
+                <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
                 {isConnected ? 'Connected' : 'Not Connected'}
               </Badge>
               
               <Button 
                 onClick={sendScheduledPosts}
                 disabled={sendingPosts || scheduledCount === 0}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                className="bg-gray-900 hover:bg-gray-800"
                 size="sm"
               >
                 {sendingPosts ? 'Sending...' : 'Send Due Posts'}
@@ -325,8 +324,8 @@ const Index = () => {
                 onClick={() => setActiveView(item.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
                   activeView === item.id
-                    ? 'bg-white text-blue-600 shadow-md border border-blue-200'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -341,65 +340,65 @@ const Index = () => {
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+              <Card className="border-gray-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-blue-700">Scheduled</CardTitle>
-                    <Clock className="h-5 w-5 text-blue-600" />
+                    <CardTitle className="text-sm font-medium text-gray-600">Scheduled</CardTitle>
+                    <Clock className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-900">{scheduledCount}</div>
-                  <p className="text-sm text-blue-600 mt-1">Ready to send</p>
+                  <div className="text-3xl font-bold text-gray-900">{scheduledCount}</div>
+                  <p className="text-sm text-gray-500 mt-1">Ready to send</p>
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <Card className="border-gray-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-green-700">Sent</CardTitle>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <CardTitle className="text-sm font-medium text-gray-600">Sent</CardTitle>
+                    <CheckCircle className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-green-900">{sentCount}</div>
-                  <p className="text-sm text-green-600 mt-1">Successfully delivered</p>
+                  <div className="text-3xl font-bold text-gray-900">{sentCount}</div>
+                  <p className="text-sm text-gray-500 mt-1">Successfully delivered</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+              <Card className="border-gray-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-red-700">Failed</CardTitle>
-                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <CardTitle className="text-sm font-medium text-gray-600">Failed</CardTitle>
+                    <AlertCircle className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-red-900">{failedCount}</div>
-                  <p className="text-sm text-red-600 mt-1">Needs attention</p>
+                  <div className="text-3xl font-bold text-gray-900">{failedCount}</div>
+                  <p className="text-sm text-gray-500 mt-1">Needs attention</p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+              <Card className="border-gray-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-purple-700">Total</CardTitle>
-                    <List className="h-5 w-5 text-purple-600" />
+                    <CardTitle className="text-sm font-medium text-gray-600">Total</CardTitle>
+                    <List className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-purple-900">{posts.length}</div>
-                  <p className="text-sm text-purple-600 mt-1">All posts</p>
+                  <div className="text-3xl font-bold text-gray-900">{posts.length}</div>
+                  <p className="text-sm text-gray-500 mt-1">All posts</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+              <Card className="border-gray-200">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Plus className="w-5 h-5 text-blue-600" />
+                    <Plus className="w-5 h-5 text-gray-600" />
                     <span>Quick Actions</span>
                   </CardTitle>
                   <CardDescription>Get started with common tasks</CardDescription>
@@ -407,7 +406,7 @@ const Index = () => {
                 <CardContent className="space-y-3">
                   <Button 
                     onClick={() => setActiveView('editor')}
-                    className="w-full justify-start bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    className="w-full justify-start bg-gray-900 hover:bg-gray-800"
                   >
                     <Send className="w-4 h-4 mr-2" />
                     Create New Post
@@ -424,7 +423,7 @@ const Index = () => {
                     <Button 
                       onClick={() => setActiveView('settings')}
                       variant="outline"
-                      className="w-full justify-start border-orange-200 text-orange-700 hover:bg-orange-50"
+                      className="w-full justify-start"
                     >
                       <Settings className="w-4 h-4 mr-2" />
                       Setup Bot Connection
@@ -433,7 +432,7 @@ const Index = () => {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+              <Card className="border-gray-200">
                 <CardHeader>
                   <CardTitle>Getting Started</CardTitle>
                   <CardDescription>Setup guide for new users</CardDescription>
@@ -441,30 +440,30 @@ const Index = () => {
                 <CardContent className="space-y-4">
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isConnected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isConnected ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-600'}`}>
                         1
                       </div>
                       <div>
                         <p className="font-medium">Setup Telegram Bot</p>
-                        <p className="text-gray-600">Create bot via @BotFather and get your token</p>
+                        <p className="text-gray-500">Create bot via @BotFather and get your token</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-800 flex items-center justify-center text-xs font-bold">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">
                         2
                       </div>
                       <div>
                         <p className="font-medium">Add Bot to Channel</p>
-                        <p className="text-gray-600">Make your bot an admin in your channel</p>
+                        <p className="text-gray-500">Make your bot an admin in your channel</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-800 flex items-center justify-center text-xs font-bold">
+                      <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">
                         3
                       </div>
                       <div>
                         <p className="font-medium">Start Scheduling</p>
-                        <p className="text-gray-600">Create and schedule your first post</p>
+                        <p className="text-gray-500">Create and schedule your first post</p>
                       </div>
                     </div>
                   </div>
@@ -474,7 +473,7 @@ const Index = () => {
 
             {/* Recent Posts Preview */}
             {posts.length > 0 && (
-              <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+              <Card className="border-gray-200">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Recent Posts</CardTitle>
@@ -490,7 +489,7 @@ const Index = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {posts.slice(0, 3).map((post) => (
-                      <div key={post.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                      <div key={post.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">
                             {post.content.slice(0, 60)}...
@@ -516,10 +515,10 @@ const Index = () => {
 
         {/* Other Views */}
         {activeView === 'editor' && (
-          <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Send className="w-5 h-5 text-blue-600" />
+                <Send className="w-5 h-5 text-gray-600" />
                 <span>Create New Post</span>
               </CardTitle>
               <CardDescription>Schedule a new message for your Telegram channel</CardDescription>
@@ -531,10 +530,10 @@ const Index = () => {
         )}
 
         {activeView === 'posts' && (
-          <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <List className="w-5 h-5 text-blue-600" />
+                <List className="w-5 h-5 text-gray-600" />
                 <span>All Posts</span>
               </CardTitle>
               <CardDescription>Manage your scheduled and sent posts</CardDescription>
@@ -550,25 +549,25 @@ const Index = () => {
         )}
 
         {activeView === 'calendar' && (
-          <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <CalendarIcon className="w-5 h-5 text-blue-600" />
+                <CalendarIcon className="w-5 h-5 text-gray-600" />
                 <span>Calendar View</span>
               </CardTitle>
               <CardDescription>Visual overview of your scheduled posts</CardDescription>
             </CardHeader>
             <CardContent>
-              <Calendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
+              <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
             </CardContent>
           </Card>
         )}
 
         {activeView === 'settings' && (
-          <Card className="bg-white/60 backdrop-blur-sm border-white/20">
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Settings className="w-5 h-5 text-blue-600" />
+                <Settings className="w-5 h-5 text-gray-600" />
                 <span>Bot Settings</span>
               </CardTitle>
               <CardDescription>Configure your Telegram bot connection</CardDescription>

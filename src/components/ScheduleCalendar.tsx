@@ -71,10 +71,10 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/5 backdrop-blur-md border-white/10">
+      <Card className="border-gray-200">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <CalendarIcon className="w-5 h-5" />
               Schedule Calendar
             </CardTitle>
@@ -83,7 +83,7 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
                 onClick={goToToday}
                 variant="outline"
                 size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                className="border-gray-200"
               >
                 Today
               </Button>
@@ -91,7 +91,7 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
                 onClick={() => navigateMonth('prev')}
                 variant="outline"
                 size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 p-2"
+                className="border-gray-200 p-2"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -99,14 +99,14 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
                 onClick={() => navigateMonth('next')}
                 variant="outline"
                 size="sm"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 p-2"
+                className="border-gray-200 p-2"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-gray-900">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
           </div>
@@ -116,7 +116,7 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
           <div className="grid grid-cols-7 gap-1 mb-4">
             {/* Week day headers */}
             {weekDays.map(day => (
-              <div key={day} className="p-2 text-center text-purple-300 font-semibold text-sm">
+              <div key={day} className="p-2 text-center text-gray-500 font-semibold text-sm">
                 {day}
               </div>
             ))}
@@ -135,13 +135,13 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
               return (
                 <div
                   key={day}
-                  className={`p-2 h-20 border border-white/10 rounded-lg transition-all hover:bg-white/10 ${
-                    isToday ? 'bg-purple-500/20 border-purple-500/50' : 'bg-white/5'
+                  className={`p-2 h-20 border border-gray-200 rounded-lg transition-all hover:bg-gray-50 ${
+                    isToday ? 'bg-gray-100 border-gray-300' : 'bg-white'
                   } ${isPast ? 'opacity-60' : ''}`}
                 >
                   <div className="flex flex-col h-full">
                     <div className={`text-sm font-semibold mb-1 ${
-                      isToday ? 'text-purple-300' : 'text-white'
+                      isToday ? 'text-gray-900' : 'text-gray-700'
                     }`}>
                       {day}
                     </div>
@@ -155,10 +155,10 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
                           <Badge 
                             className={`text-xs px-1 py-0 truncate block w-full ${
                               post.status === 'scheduled' 
-                                ? 'bg-blue-500/30 text-blue-200 border-blue-500/50' 
+                                ? 'bg-gray-100 text-gray-700 border-gray-200' 
                                 : post.status === 'sent'
-                                ? 'bg-green-500/30 text-green-200 border-green-500/50'
-                                : 'bg-red-500/30 text-red-200 border-red-500/50'
+                                ? 'bg-gray-800 text-white border-gray-800'
+                                : 'bg-red-100 text-red-700 border-red-200'
                             }`}
                           >
                             <Clock className="w-2 h-2 mr-1 inline" />
@@ -170,7 +170,7 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
                         </div>
                       ))}
                       {dayPosts.length > 2 && (
-                        <div className="text-xs text-purple-300 text-center">
+                        <div className="text-xs text-gray-500 text-center">
                           +{dayPosts.length - 2} more
                         </div>
                       )}
@@ -184,9 +184,9 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
       </Card>
 
       {/* Upcoming Posts */}
-      <Card className="bg-white/5 backdrop-blur-md border-white/10">
+      <Card className="border-gray-200">
         <CardHeader>
-          <CardTitle className="text-white">Upcoming Posts</CardTitle>
+          <CardTitle className="text-gray-900">Upcoming Posts</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -203,17 +203,17 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
                 <div
                   key={post.id}
                   onClick={() => onPostClick(post)}
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg cursor-pointer hover:bg-white/10 transition-all"
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all border border-gray-100"
                 >
                   <div className="flex-1">
-                    <p className="text-white text-sm truncate max-w-md">
+                    <p className="text-gray-900 text-sm truncate max-w-md">
                       {post.content}
                     </p>
-                    <p className="text-purple-300 text-xs mt-1">
+                    <p className="text-gray-500 text-xs mt-1">
                       {new Date(post.scheduled_time).toLocaleString()}
                     </p>
                   </div>
-                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                  <Badge className="bg-gray-100 text-gray-700 border-gray-200">
                     <Clock className="w-3 h-3 mr-1" />
                     Scheduled
                   </Badge>
@@ -224,7 +224,7 @@ export const Calendar: React.FC<ScheduleCalendarProps> = ({ posts, onPostClick }
               post.status === 'scheduled' && 
               new Date(post.scheduled_time) > new Date()
             ).length === 0 && (
-              <div className="text-center py-8 text-purple-300">
+              <div className="text-center py-8 text-gray-500">
                 No upcoming posts scheduled
               </div>
             )}
