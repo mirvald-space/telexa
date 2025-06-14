@@ -18,19 +18,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get all scheduled posts that should be sent now (with 5 minute buffer for past posts)
+    // Get all scheduled posts that should be sent now (scheduled_time <= now)
     const now = new Date()
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000) // 5 minutes ago
     const nowISO = now.toISOString()
-    const fiveMinutesAgoISO = fiveMinutesAgo.toISOString()
 
-    console.log('Checking for posts scheduled between:', fiveMinutesAgoISO, 'and', nowISO)
+    console.log('Checking for posts scheduled at or before:', nowISO)
 
     const { data: posts, error: fetchError } = await supabase
       .from('posts')
       .select('*')
       .eq('status', 'scheduled')
-      .gte('scheduled_time', fiveMinutesAgoISO)
       .lte('scheduled_time', nowISO)
 
     if (fetchError) {
