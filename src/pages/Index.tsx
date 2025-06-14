@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PostEditor } from '@/components/PostEditor';
 import { ScheduledPosts } from '@/components/ScheduledPosts';
@@ -48,7 +47,19 @@ const Index = () => {
         .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
-      if (postsData) setPosts(postsData);
+      if (postsData) {
+        // Cast the data to match our Post interface
+        const typedPosts: Post[] = postsData.map(post => ({
+          id: post.id,
+          content: post.content,
+          image_url: post.image_url || undefined,
+          scheduled_time: post.scheduled_time,
+          status: post.status as 'scheduled' | 'sent' | 'failed',
+          created_at: post.created_at,
+          chat_id: post.chat_id || undefined
+        }));
+        setPosts(typedPosts);
+      }
 
       // Load bot config
       const { data: configData, error: configError } = await supabase
@@ -128,7 +139,7 @@ const Index = () => {
         content: data.content,
         image_url: data.image_url,
         scheduled_time: data.scheduled_time,
-        status: data.status,
+        status: data.status as 'scheduled' | 'sent' | 'failed',
         created_at: data.created_at,
         chat_id: data.chat_id
       };
