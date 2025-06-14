@@ -30,6 +30,7 @@ const Index = () => {
   const [botConfig, setBotConfig] = useState<BotConfig>({ token: '', chat_id: '' });
   const [activeTab, setActiveTab] = useState('editor');
   const [loading, setLoading] = useState(true);
+  const [sendingPosts, setSendingPosts] = useState(false);
   const { toast } = useToast();
 
   // Load data from Supabase
@@ -216,26 +217,42 @@ const Index = () => {
     }
   };
 
-  // Check for posts to send (would be replaced with proper scheduling service)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const postsToSend = posts.filter(post => 
-        post.status === 'scheduled' && 
-        new Date(post.scheduled_time) <= now
-      );
+  // Manually trigger sending posts (for testing)
+  const sendScheduledPosts = async () => {
+    setSendingPosts(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-telegram-message');
+      
+      if (error) throw error;
 
-      if (postsToSend.length > 0 && botConfig.token && botConfig.chat_id) {
-        postsToSend.forEach(post => {
-          // Simulate sending (would use actual Telegram Bot API)
-          console.log('Sending post:', post);
-          updatePost(post.id, { status: 'sent' });
+      // Reload posts to see updated statuses
+      await loadData();
+      
+      if (data.results && data.results.length > 0) {
+        const sentCount = data.results.filter(r => r.status === 'sent').length;
+        const failedCount = data.results.filter(r => r.status === 'failed').length;
+        
+        toast({
+          title: "Posts processed",
+          description: `${sentCount} sent successfully, ${failedCount} failed`,
+        });
+      } else {
+        toast({
+          title: "No posts to send",
+          description: "All scheduled posts are either in the future or already sent.",
         });
       }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(interval);
-  }, [posts, botConfig]);
+    } catch (error) {
+      console.error('Error sending posts:', error);
+      toast({
+        title: "Error sending posts",
+        description: "Failed to send scheduled posts. Check your bot configuration.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingPosts(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -262,7 +279,7 @@ const Index = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="bg-white/10 backdrop-blur-md border-white/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm font-medium">Scheduled Posts</CardTitle>
@@ -289,6 +306,22 @@ const Index = () => {
               <div className={`text-2xl font-bold ${botConfig.token && botConfig.chat_id ? 'text-green-300' : 'text-red-300'}`}>
                 {botConfig.token && botConfig.chat_id ? 'Connected' : 'Not Set'}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-white text-sm font-medium">Send Now</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={sendScheduledPosts}
+                disabled={sendingPosts || scheduledCount === 0}
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                size="sm"
+              >
+                {sendingPosts ? 'Sending...' : 'Send Due Posts'}
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -342,22 +375,29 @@ const Index = () => {
         {/* Instructions Card */}
         <Card className="mt-8 bg-white/5 backdrop-blur-md border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">Database Connection</CardTitle>
+            <CardTitle className="text-white">Telegram Integration</CardTitle>
           </CardHeader>
           <CardContent className="text-purple-200 space-y-4">
             <div>
-              <h3 className="font-semibold text-white mb-2">✅ Supabase Connected:</h3>
+              <h3 className="font-semibold text-white mb-2">✅ Telegram Bot Ready:</h3>
               <p className="text-sm">
-                Your app is now connected to Supabase and will persist all data in the database. Posts and bot settings are automatically saved and synchronized.
+                Your app now includes real Telegram Bot API integration! Posts scheduled in the past will be sent automatically when you click "Send Due Posts" or when the automatic scheduler runs.
               </p>
             </div>
             <div>
-              <h3 className="font-semibold text-white mb-2">Telegram Bot Setup:</h3>
+              <h3 className="font-semibold text-white mb-2">🔄 Automatic Scheduling:</h3>
+              <p className="text-sm">
+                To enable automatic sending every minute, we'll need to set up a cron job. For now, use the "Send Due Posts" button to manually trigger sending of scheduled posts.
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-white mb-2">Bot Setup Requirements:</h3>
               <ol className="text-sm space-y-1 list-decimal list-inside">
                 <li>Create a bot via @BotFather on Telegram</li>
                 <li>Get your bot token and channel/chat ID</li>
                 <li>Add the bot to your channel as an admin</li>
                 <li>Configure the bot settings in the Settings tab</li>
+                <li>Test with the "Send Due Posts" button</li>
               </ol>
             </div>
           </CardContent>
