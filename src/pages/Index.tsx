@@ -5,8 +5,10 @@ import { BotSettings } from '@/components/BotSettings';
 import { Calendar } from '@/components/ScheduleCalendar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, Calendar as CalendarIcon, Settings, List } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Send, Calendar as CalendarIcon, Settings, List, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -256,68 +258,90 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   const scheduledCount = posts.filter(p => p.status === 'scheduled').length;
   const sentCount = posts.filter(p => p.status === 'sent').length;
+  const failedCount = posts.filter(p => p.status === 'failed').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 max-w-6xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
             Telegram Scheduler
           </h1>
-          <p className="text-purple-200 text-lg">
-            Schedule and manage your Telegram channel posts with ease
+          <p className="text-muted-foreground">
+            Schedule and manage your Telegram channel posts
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm font-medium">Scheduled Posts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-300">{scheduledCount}</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm font-medium">Sent Posts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-300">{sentCount}</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm font-medium">Bot Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${botConfig.token && botConfig.chat_id ? 'text-green-300' : 'text-red-300'}`}>
-                {botConfig.token && botConfig.chat_id ? 'Connected' : 'Not Set'}
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
               </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{scheduledCount}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Sent</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{sentCount}</div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/10 backdrop-blur-md border-white/20">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm font-medium">Send Now</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Failed</CardTitle>
+                <AlertCircle className="h-4 w-4 text-red-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{failedCount}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Bot Status</CardTitle>
+                <div className={`h-2 w-2 rounded-full ${botConfig.token && botConfig.chat_id ? 'bg-green-500' : 'bg-red-500'}`} />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Badge variant={botConfig.token && botConfig.chat_id ? 'default' : 'destructive'}>
+                {botConfig.token && botConfig.chat_id ? 'Connected' : 'Not Set'}
+              </Badge>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <Button 
                 onClick={sendScheduledPosts}
                 disabled={sendingPosts || scheduledCount === 0}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                className="w-full"
                 size="sm"
               >
                 {sendingPosts ? 'Sending...' : 'Send Due Posts'}
@@ -327,78 +351,97 @@ const Index = () => {
         </div>
 
         {/* Main Content */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20">
-          <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-md">
-                <TabsTrigger value="editor" className="flex items-center gap-2 text-white data-[state=active]:bg-white/20">
-                  <Send className="w-4 h-4" />
-                  <span className="hidden sm:inline">Editor</span>
-                </TabsTrigger>
-                <TabsTrigger value="calendar" className="flex items-center gap-2 text-white data-[state=active]:bg-white/20">
-                  <CalendarIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Calendar</span>
-                </TabsTrigger>
-                <TabsTrigger value="posts" className="flex items-center gap-2 text-white data-[state=active]:bg-white/20">
-                  <List className="w-4 h-4" />
-                  <span className="hidden sm:inline">Posts</span>
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2 text-white data-[state=active]:bg-white/20">
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden sm:inline">Settings</span>
-                </TabsTrigger>
-              </TabsList>
+              <div className="border-b">
+                <TabsList className="h-auto p-0 bg-transparent">
+                  <TabsTrigger 
+                    value="editor" 
+                    className="flex items-center gap-2 px-6 py-4 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                  >
+                    <Send className="w-4 h-4" />
+                    New Post
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="posts" 
+                    className="flex items-center gap-2 px-6 py-4 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                  >
+                    <List className="w-4 h-4" />
+                    Posts
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="calendar" 
+                    className="flex items-center gap-2 px-6 py-4 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    Calendar
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="settings" 
+                    className="flex items-center gap-2 px-6 py-4 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-              <TabsContent value="editor" className="mt-6">
-                <PostEditor onSubmit={addPost} />
-              </TabsContent>
+              <div className="p-6">
+                <TabsContent value="editor" className="mt-0">
+                  <PostEditor onSubmit={addPost} />
+                </TabsContent>
 
-              <TabsContent value="calendar" className="mt-6">
-                <Calendar posts={posts} onPostClick={(post) => setActiveTab('posts')} />
-              </TabsContent>
+                <TabsContent value="posts" className="mt-0">
+                  <ScheduledPosts 
+                    posts={posts} 
+                    onUpdate={updatePost} 
+                    onDelete={deletePost} 
+                  />
+                </TabsContent>
 
-              <TabsContent value="posts" className="mt-6">
-                <ScheduledPosts 
-                  posts={posts} 
-                  onUpdate={updatePost} 
-                  onDelete={deletePost} 
-                />
-              </TabsContent>
+                <TabsContent value="calendar" className="mt-0">
+                  <Calendar posts={posts} onPostClick={(post) => setActiveTab('posts')} />
+                </TabsContent>
 
-              <TabsContent value="settings" className="mt-6">
-                <BotSettings config={botConfig} onSave={saveBotConfig} />
-              </TabsContent>
+                <TabsContent value="settings" className="mt-0">
+                  <BotSettings config={botConfig} onSave={saveBotConfig} />
+                </TabsContent>
+              </div>
             </Tabs>
           </CardContent>
         </Card>
 
-        {/* Instructions Card */}
-        <Card className="mt-8 bg-white/5 backdrop-blur-md border-white/10">
+        {/* Help Section */}
+        <Card className="mt-8">
           <CardHeader>
-            <CardTitle className="text-white">Telegram Integration</CardTitle>
+            <CardTitle>Getting Started</CardTitle>
+            <CardDescription>
+              Quick setup guide for your Telegram bot integration
+            </CardDescription>
           </CardHeader>
-          <CardContent className="text-purple-200 space-y-4">
-            <div>
-              <h3 className="font-semibold text-white mb-2">✅ Telegram Bot Ready:</h3>
-              <p className="text-sm">
-                Your app now includes real Telegram Bot API integration! Posts scheduled in the past will be sent automatically when you click "Send Due Posts" or when the automatic scheduler runs.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white mb-2">🔄 Automatic Scheduling:</h3>
-              <p className="text-sm">
-                To enable automatic sending every minute, we'll need to set up a cron job. For now, use the "Send Due Posts" button to manually trigger sending of scheduled posts.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white mb-2">Bot Setup Requirements:</h3>
-              <ol className="text-sm space-y-1 list-decimal list-inside">
-                <li>Create a bot via @BotFather on Telegram</li>
-                <li>Get your bot token and channel/chat ID</li>
-                <li>Add the bot to your channel as an admin</li>
-                <li>Configure the bot settings in the Settings tab</li>
-                <li>Test with the "Send Due Posts" button</li>
-              </ol>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <h4 className="font-medium mb-2">Bot Setup</h4>
+                <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                  <li>Create a bot via @BotFather on Telegram</li>
+                  <li>Get your bot token and channel/chat ID</li>
+                  <li>Add the bot to your channel as an admin</li>
+                  <li>Configure the bot settings in the Settings tab</li>
+                  <li>Test with the "Send Due Posts" button</li>
+                </ol>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Features</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Schedule posts with images</li>
+                  <li>• Automatic sending at scheduled times</li>
+                  <li>• Calendar view of scheduled posts</li>
+                  <li>• Real-time status tracking</li>
+                  <li>• Manual send trigger available</li>
+                </ul>
+              </div>
             </div>
           </CardContent>
         </Card>
