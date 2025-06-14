@@ -66,19 +66,45 @@ serve(async (req) => {
         const chatId = post.chat_id || botConfig.chat_id
 
         if (post.image_url) {
-          // Send photo with caption
-          const photoData = {
-            chat_id: chatId,
-            photo: post.image_url,
-            caption: post.content,
-            parse_mode: 'HTML'
-          }
+          // Check if it's a base64 image
+          if (post.image_url.startsWith('data:image/')) {
+            // Handle base64 image by converting to blob and uploading
+            const base64Data = post.image_url.split(',')[1]
+            const mimeType = post.image_url.split(';')[0].split(':')[1]
+            
+            // Convert base64 to Uint8Array
+            const binaryString = atob(base64Data)
+            const bytes = new Uint8Array(binaryString.length)
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i)
+            }
 
-          telegramResponse = await fetch(`https://api.telegram.org/bot${botConfig.token}/sendPhoto`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(photoData)
-          })
+            // Create form data for photo upload
+            const formData = new FormData()
+            formData.append('chat_id', chatId)
+            formData.append('caption', post.content)
+            formData.append('parse_mode', 'HTML')
+            formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png')
+
+            telegramResponse = await fetch(`https://api.telegram.org/bot${botConfig.token}/sendPhoto`, {
+              method: 'POST',
+              body: formData
+            })
+          } else {
+            // Handle regular URL image
+            const photoData = {
+              chat_id: chatId,
+              photo: post.image_url,
+              caption: post.content,
+              parse_mode: 'HTML'
+            }
+
+            telegramResponse = await fetch(`https://api.telegram.org/bot${botConfig.token}/sendPhoto`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(photoData)
+            })
+          }
         } else {
           // Send text message
           const messageData = {
