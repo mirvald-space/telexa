@@ -18,13 +18,20 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get all scheduled posts that should be sent now
-    const now = new Date().toISOString()
+    // Get all scheduled posts that should be sent now (with 5 minute buffer for past posts)
+    const now = new Date()
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000) // 5 minutes ago
+    const nowISO = now.toISOString()
+    const fiveMinutesAgoISO = fiveMinutesAgo.toISOString()
+
+    console.log('Checking for posts scheduled between:', fiveMinutesAgoISO, 'and', nowISO)
+
     const { data: posts, error: fetchError } = await supabase
       .from('posts')
       .select('*')
       .eq('status', 'scheduled')
-      .lte('scheduled_time', now)
+      .gte('scheduled_time', fiveMinutesAgoISO)
+      .lte('scheduled_time', nowISO)
 
     if (fetchError) {
       console.error('Error fetching posts:', fetchError)
@@ -34,8 +41,10 @@ serve(async (req) => {
       })
     }
 
+    console.log('Found posts to send:', posts?.length || 0)
+
     if (!posts || posts.length === 0) {
-      return new Response(JSON.stringify({ message: 'No posts to send' }), {
+      return new Response(JSON.stringify({ message: 'No posts to send', results: [] }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -57,17 +66,23 @@ serve(async (req) => {
       })
     }
 
+    console.log('Bot config found, token length:', botConfig.token?.length || 0)
+
     const results = []
 
     // Send each post
     for (const post of posts) {
       try {
+        console.log('Processing post:', post.id, 'scheduled for:', post.scheduled_time)
+        
         let telegramResponse
         const chatId = post.chat_id || botConfig.chat_id
 
         if (post.image_url) {
           // Check if it's a base64 image
           if (post.image_url.startsWith('data:image/')) {
+            console.log('Sending base64 image for post:', post.id)
+            
             // Handle base64 image by converting to blob and uploading
             const base64Data = post.image_url.split(',')[1]
             const mimeType = post.image_url.split(';')[0].split(':')[1]
@@ -91,6 +106,8 @@ serve(async (req) => {
               body: formData
             })
           } else {
+            console.log('Sending URL image for post:', post.id)
+            
             // Handle regular URL image
             const photoData = {
               chat_id: chatId,
@@ -106,6 +123,8 @@ serve(async (req) => {
             })
           }
         } else {
+          console.log('Sending text message for post:', post.id)
+          
           // Send text message
           const messageData = {
             chat_id: chatId,
@@ -121,6 +140,7 @@ serve(async (req) => {
         }
 
         const telegramResult = await telegramResponse.json()
+        console.log('Telegram API response for post', post.id, ':', telegramResult)
 
         if (telegramResponse.ok && telegramResult.ok) {
           // Mark as sent
@@ -134,6 +154,8 @@ serve(async (req) => {
             status: 'sent', 
             messageId: telegramResult.result.message_id 
           })
+          
+          console.log('Successfully sent post:', post.id)
         } else {
           // Mark as failed
           await supabase
@@ -141,10 +163,13 @@ serve(async (req) => {
             .update({ status: 'failed' })
             .eq('id', post.id)
 
+          const errorDescription = telegramResult.description || 'Unknown error'
+          console.error('Failed to send post:', post.id, 'Error:', errorDescription)
+
           results.push({ 
             postId: post.id, 
             status: 'failed', 
-            error: telegramResult.description || 'Unknown error' 
+            error: errorDescription 
           })
         }
       } catch (error) {
@@ -163,6 +188,8 @@ serve(async (req) => {
         })
       }
     }
+
+    console.log('Processing complete. Results:', results)
 
     return new Response(JSON.stringify({ results }), {
       status: 200,
