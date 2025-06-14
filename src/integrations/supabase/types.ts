@@ -9,7 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      bot_configs: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      posts: {
+        Row: {
+          chat_id: string | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          scheduled_time: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          chat_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          scheduled_time: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          chat_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          scheduled_time?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, Calendar as CalendarIcon, Settings, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Post {
   id: string;
@@ -29,81 +30,179 @@ const Index = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [botConfig, setBotConfig] = useState<BotConfig>({ token: '', chat_id: '' });
   const [activeTab, setActiveTab] = useState('editor');
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Load data from localStorage (simulating Supabase for now)
+  // Load data from Supabase
   useEffect(() => {
-    const savedPosts = localStorage.getItem('telegram-posts');
-    const savedConfig = localStorage.getItem('bot-config');
-    
-    if (savedPosts) {
-      setPosts(JSON.parse(savedPosts));
-    }
-    
-    if (savedConfig) {
-      setBotConfig(JSON.parse(savedConfig));
-    }
+    loadData();
   }, []);
 
-  // Save posts to localStorage
-  const savePosts = (updatedPosts: Post[]) => {
-    setPosts(updatedPosts);
-    localStorage.setItem('telegram-posts', JSON.stringify(updatedPosts));
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      // Load posts
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (postsError) throw postsError;
+      if (postsData) setPosts(postsData);
+
+      // Load bot config
+      const { data: configData, error: configError } = await supabase
+        .from('bot_configs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (configError) throw configError;
+      if (configData && configData.length > 0) {
+        setBotConfig({
+          token: configData[0].token,
+          chat_id: configData[0].chat_id
+        });
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Failed to load posts and settings from database.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Save bot config
-  const saveBotConfig = (config: BotConfig) => {
-    setBotConfig(config);
-    localStorage.setItem('bot-config', JSON.stringify(config));
-    toast({
-      title: "Bot settings saved",
-      description: "Your Telegram bot configuration has been updated.",
-    });
+  // Save bot config to Supabase
+  const saveBotConfig = async (config: BotConfig) => {
+    try {
+      // Delete existing configs and insert new one
+      await supabase.from('bot_configs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      
+      const { error } = await supabase
+        .from('bot_configs')
+        .insert([{
+          token: config.token,
+          chat_id: config.chat_id
+        }]);
+
+      if (error) throw error;
+
+      setBotConfig(config);
+      toast({
+        title: "Bot settings saved",
+        description: "Your Telegram bot configuration has been updated.",
+      });
+    } catch (error) {
+      console.error('Error saving bot config:', error);
+      toast({
+        title: "Error saving settings",
+        description: "Failed to save bot configuration to database.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Add new post
-  const addPost = (postData: Omit<Post, 'id' | 'created_at' | 'status'>) => {
-    const newPost: Post = {
-      ...postData,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString(),
-      status: 'scheduled',
-      chat_id: botConfig.chat_id
-    };
-    
-    const updatedPosts = [...posts, newPost];
-    savePosts(updatedPosts);
-    
-    toast({
-      title: "Post scheduled",
-      description: `Your post has been scheduled for ${new Date(postData.scheduled_time).toLocaleString()}`,
-    });
-    
-    setActiveTab('posts');
+  // Add new post to Supabase
+  const addPost = async (postData: Omit<Post, 'id' | 'created_at' | 'status'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .insert([{
+          content: postData.content,
+          image_url: postData.image_url,
+          scheduled_time: postData.scheduled_time,
+          chat_id: botConfig.chat_id,
+          status: 'scheduled'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newPost: Post = {
+        id: data.id,
+        content: data.content,
+        image_url: data.image_url,
+        scheduled_time: data.scheduled_time,
+        status: data.status,
+        created_at: data.created_at,
+        chat_id: data.chat_id
+      };
+
+      setPosts(prev => [newPost, ...prev]);
+      
+      toast({
+        title: "Post scheduled",
+        description: `Your post has been scheduled for ${new Date(postData.scheduled_time).toLocaleString()}`,
+      });
+      
+      setActiveTab('posts');
+    } catch (error) {
+      console.error('Error adding post:', error);
+      toast({
+        title: "Error scheduling post",
+        description: "Failed to save post to database.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Update post
-  const updatePost = (postId: string, updates: Partial<Post>) => {
-    const updatedPosts = posts.map(post => 
-      post.id === postId ? { ...post, ...updates } : post
-    );
-    savePosts(updatedPosts);
-    
-    toast({
-      title: "Post updated",
-      description: "Your post has been successfully updated.",
-    });
+  // Update post in Supabase
+  const updatePost = async (postId: string, updates: Partial<Post>) => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update(updates)
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      setPosts(prev => prev.map(post => 
+        post.id === postId ? { ...post, ...updates } : post
+      ));
+      
+      toast({
+        title: "Post updated",
+        description: "Your post has been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Error updating post:', error);
+      toast({
+        title: "Error updating post",
+        description: "Failed to update post in database.",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Delete post
-  const deletePost = (postId: string) => {
-    const updatedPosts = posts.filter(post => post.id !== postId);
-    savePosts(updatedPosts);
-    
-    toast({
-      title: "Post deleted",
-      description: "The scheduled post has been removed.",
-    });
+  // Delete post from Supabase
+  const deletePost = async (postId: string) => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      setPosts(prev => prev.filter(post => post.id !== postId));
+      
+      toast({
+        title: "Post deleted",
+        description: "The scheduled post has been removed.",
+      });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error deleting post",
+        description: "Failed to delete post from database.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Check for posts to send (would be replaced with proper scheduling service)
@@ -126,6 +225,14 @@ const Index = () => {
 
     return () => clearInterval(interval);
   }, [posts, botConfig]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
 
   const scheduledCount = posts.filter(p => p.status === 'scheduled').length;
   const sentCount = posts.filter(p => p.status === 'sent').length;
@@ -224,13 +331,13 @@ const Index = () => {
         {/* Instructions Card */}
         <Card className="mt-8 bg-white/5 backdrop-blur-md border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">Setup Instructions</CardTitle>
+            <CardTitle className="text-white">Database Connection</CardTitle>
           </CardHeader>
           <CardContent className="text-purple-200 space-y-4">
             <div>
-              <h3 className="font-semibold text-white mb-2">Supabase Setup:</h3>
+              <h3 className="font-semibold text-white mb-2">✅ Supabase Connected:</h3>
               <p className="text-sm">
-                Connect to Supabase using the green button in the top right. The app will need tables for posts and bot configurations.
+                Your app is now connected to Supabase and will persist all data in the database. Posts and bot settings are automatically saved and synchronized.
               </p>
             </div>
             <div>
