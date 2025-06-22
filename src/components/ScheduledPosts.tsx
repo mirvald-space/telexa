@@ -108,12 +108,6 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Запланированные посты</h2>
-        <div className="text-gray-600">
-          {posts.length} пост{posts.length !== 1 ? 'ов' : ''}
-        </div>
-      </div>
 
       {sortedPosts.length === 0 ? (
         <Card className="bg-white border-gray-200">

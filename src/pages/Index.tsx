@@ -4,8 +4,6 @@ import { PostEditor } from '@/components/PostEditor';
 import { ScheduledPosts } from '@/components/ScheduledPosts';
 import { Calendar as ScheduleCalendar } from '@/components/ScheduleCalendar';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -332,6 +330,7 @@ const Index = () => {
       <Header 
         activeView={activeView}
         onViewChange={setActiveView}
+        postsCount={posts.length}
       />
       
       {/* Контент */}
@@ -357,22 +356,13 @@ const Index = () => {
           )}
 
           {activeView === 'posts' && (
-            <Card className="border-gray-200 bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-900">
-                  <List className="w-5 h-5 text-gray-600" />
-                  <span>Все посты</span>
-                </CardTitle>
-                <CardDescription>Управление запланированными и отправленными постами</CardDescription>
-              </CardHeader>
-              <CardContent>
+
                 <ScheduledPosts 
                   posts={posts} 
                   onUpdate={updatePost} 
                   onDelete={deletePost} 
                 />
-              </CardContent>
-            </Card>
+
           )}
     </main>
   );

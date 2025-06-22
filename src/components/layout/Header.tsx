@@ -3,17 +3,20 @@ import { Button } from '@/components/ui/button';
 import { Activity, Plus, List } from 'lucide-react';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 
 interface HeaderProps {
   onViewChange?: (view: string) => void;
   activeView?: string;
   showNavigation?: boolean;
+  postsCount?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onViewChange, 
   activeView = 'dashboard',
-  showNavigation = true
+  showNavigation = true,
+  postsCount = 0
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,6 +64,11 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <List className="h-4 w-4 mr-2" />
                 Посты
+                {postsCount > 0 && (
+                  <Badge variant="secondary" className="ml-2 bg-gray-200 text-gray-900">
+                    {postsCount}
+                  </Badge>
+                )}
               </Button>
             </div>
           )}
@@ -129,6 +137,11 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <List className="h-4 w-4 mr-2" />
             Посты
+            {postsCount > 0 && (
+              <Badge variant="secondary" className="ml-1 bg-gray-200 text-gray-900 text-xs">
+                {postsCount}
+              </Badge>
+            )}
           </Button>
         </div>
       )}
