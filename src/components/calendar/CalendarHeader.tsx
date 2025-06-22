@@ -20,7 +20,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="text-gray-900 flex items-center gap-2 text-lg font-semibold">
           <CalendarIcon className="w-5 h-5" />
-          Schedule Calendar
+          Календарь
         </div>
         <div className="flex items-center gap-2">
           <Button
