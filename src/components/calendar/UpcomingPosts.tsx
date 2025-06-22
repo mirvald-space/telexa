@@ -27,7 +27,7 @@ export const UpcomingPosts: React.FC<UpcomingPostsProps> = ({
   return (
     <Card className="border-gray-200">
       <CardHeader>
-        <CardTitle className="text-gray-900">Upcoming Posts</CardTitle>
+        <CardTitle className="text-gray-900">Запланированные посты</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -47,13 +47,13 @@ export const UpcomingPosts: React.FC<UpcomingPostsProps> = ({
               </div>
               <Badge className="bg-gray-100 text-gray-700 border-gray-200">
                 <Clock className="w-3 h-3 mr-1" />
-                Scheduled
+                Запланировано
               </Badge>
             </div>
           ))}
           {upcomingPosts.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              No upcoming posts scheduled
+              Нет запланированных постов
             </div>
           )}
         </div>
