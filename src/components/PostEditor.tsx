@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Calendar, Clock, MessageCircle } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
 
@@ -204,8 +204,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
             {/* Chat ID */}
             <div className="space-y-2">
-              <Label htmlFor="chatId" className="text-gray-700 flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
+              <Label htmlFor="chatId" className="text-gray-700">  
                 ID канала/чата (опционально)
               </Label>
               <Input
@@ -219,8 +218,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
             {/* Schedule Datetime */}
             <div className="space-y-2">
-              <Label htmlFor="scheduledTime" className="text-gray-700 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+              <Label htmlFor="scheduledTime" className="text-gray-700">
                 Время публикации
               </Label>
               <DateTimePicker date={scheduledDate} setDate={setScheduledDate} />
