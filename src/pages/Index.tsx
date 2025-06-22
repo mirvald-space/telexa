@@ -91,15 +91,21 @@ const Index = () => {
       if (configError) throw configError;
       if (configData && configData.length > 0) {
         setBotConfig({
-          token: configData[0].token,
+          token: '@telexapost_bot', // Используем имя бота сервиса
           chat_id: configData[0].chat_id
+        });
+      } else {
+        // Если конфигурации нет, устанавливаем имя бота сервиса
+        setBotConfig({
+          token: '@telexapost_bot',
+          chat_id: ''
         });
       }
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
         title: "Ошибка загрузки данных",
-        description: "Не удалось загрузить посты и настройки из базы данных.",
+        description: "Не удалось загрузить посты из базы данных.",
         variant: "destructive",
       });
     } finally {
@@ -107,7 +113,7 @@ const Index = () => {
     }
   };
 
-  // Save bot config to Supabase
+  // Save bot config to Supabase - только ID канала
   const saveBotConfig = async (config: BotConfig) => {
     if (!user) {
       toast({
@@ -125,23 +131,27 @@ const Index = () => {
       const { error } = await supabase
         .from('bot_configs')
         .insert([{
-          token: config.token,
+          token: '@telexapost_bot', // Используем имя бота сервиса
           chat_id: config.chat_id,
           user_id: user.id
         }]);
 
       if (error) throw error;
 
-      setBotConfig(config);
+      setBotConfig({
+        token: '@telexapost_bot',
+        chat_id: config.chat_id
+      });
+      
       toast({
-        title: "Настройки бота сохранены",
-        description: "Конфигурация вашего Telegram-бота была обновлена.",
+        title: "Настройки сохранены",
+        description: "ID вашего канала был успешно сохранен.",
       });
     } catch (error) {
       console.error('Error saving bot config:', error);
       toast({
         title: "Ошибка сохранения настроек",
-        description: "Не удалось сохранить конфигурацию бота в базе данных.",
+        description: "Не удалось сохранить ID канала в базе данных.",
         variant: "destructive",
       });
     }
@@ -158,6 +168,15 @@ const Index = () => {
       return;
     }
     
+    if (!botConfig.chat_id && !postData.chat_id) {
+      toast({
+        title: "Канал не настроен",
+        description: "Пожалуйста, укажите ID канала в настройках или при создании поста.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('posts')
@@ -165,7 +184,7 @@ const Index = () => {
           content: postData.content,
           image_url: postData.image_url,
           scheduled_time: postData.scheduled_time,
-          chat_id: botConfig.chat_id,
+          chat_id: postData.chat_id || botConfig.chat_id, // Используем ID канала из поста или из настроек
           status: 'scheduled',
           user_id: user.id
         }])

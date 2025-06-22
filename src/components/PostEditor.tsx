@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Image as ImageIcon, Calendar, Clock } from 'lucide-react';
+import { Upload, Image as ImageIcon, Calendar, Clock, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface PostEditorProps {
@@ -12,6 +12,7 @@ interface PostEditorProps {
     content: string;
     image_url?: string;
     scheduled_time: string;
+    chat_id?: string;
   }) => void;
 }
 
@@ -19,6 +20,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  const [chatId, setChatId] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -108,12 +110,14 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       content,
       image_url: imageUrl || undefined,
       scheduled_time: scheduledTime,
+      chat_id: chatId || undefined,
     });
 
     // Reset form
     setContent('');
     setImageUrl('');
     setScheduledTime('');
+    setChatId('');
   };
 
   // Set minimum datetime to current time
@@ -205,6 +209,21 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
               </div>
             </div>
 
+            {/* Chat ID */}
+            <div className="space-y-2">
+              <Label htmlFor="chatId" className="text-gray-700 flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                ID канала/чата (опционально)
+              </Label>
+              <Input
+                id="chatId"
+                value={chatId}
+                onChange={(e) => setChatId(e.target.value)}
+                placeholder="@your_channel или -1001234567890 (если не указано, используется значение из .env)"
+                className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
+              />
+            </div>
+
             {/* Schedule Datetime */}
             <div className="space-y-2">
               <Label htmlFor="scheduledTime" className="text-gray-700 flex items-center gap-2">
@@ -250,14 +269,15 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
                   className="w-full max-w-md rounded-lg shadow-lg"
                 />
               )}
-              {content && (
-                <p className="text-gray-900 whitespace-pre-wrap">
-                  {content}
-                </p>
+              <div className="whitespace-pre-wrap">{content}</div>
+              {chatId && (
+                <div className="text-sm text-gray-500 mt-2">
+                  Отправка в: {chatId}
+                </div>
               )}
               {scheduledTime && (
-                <div className="text-sm text-gray-600 border-t border-gray-200 pt-3 mt-3">
-                  📅 Запланировано на: {new Date(scheduledTime).toLocaleString()}
+                <div className="text-sm text-gray-500 mt-2">
+                  Запланировано на: {new Date(scheduledTime).toLocaleString()}
                 </div>
               )}
             </div>

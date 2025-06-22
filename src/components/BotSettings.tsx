@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Settings, Bot, MessageCircle, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { Settings, Bot, MessageCircle, Eye, EyeOff, ExternalLink, Info } from 'lucide-react';
 import type { BotConfig } from '@/pages/Index';
 
 interface BotSettingsProps {
@@ -13,28 +13,29 @@ interface BotSettingsProps {
 }
 
 export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
-  const [token, setToken] = useState(config.token);
   const [chatId, setChatId] = useState(config.chat_id);
-  const [showToken, setShowToken] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
   const handleSave = () => {
-    onSave({ token, chat_id: chatId });
+    onSave({ token: config.token, chat_id: chatId });
   };
 
   const testConnection = async () => {
-    if (!token) return;
+    if (!chatId) {
+      alert('Пожалуйста, укажите ID канала/чата');
+      return;
+    }
     
     setIsTestingConnection(true);
     try {
-      // In a real app, this would make an actual API call to Telegram
-      const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+      // Проверяем, что бот добавлен в канал
+      const response = await fetch(`/api/test-connection?chatId=${encodeURIComponent(chatId)}`);
       const data = await response.json();
       
       if (data.ok) {
-        alert(`✅ Соединение успешно! Бот: @${data.result.username}`);
+        alert(`✅ Соединение успешно! Бот имеет доступ к каналу/чату.`);
       } else {
-        alert(`❌ Соединение не удалось: ${data.description}`);
+        alert(`❌ Соединение не удалось: ${data.error || 'Бот не имеет доступа к каналу/чату'}`);
       }
     } catch (error) {
       alert(`❌ Соединение не удалось: ${error}`);
@@ -53,38 +54,18 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Bot Token */}
-          <div className="space-y-2">
-            <Label htmlFor="token" className="text-gray-700 flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Токен бота
-            </Label>
-            <div className="relative">
-              <Input
-                id="token"
-                type={showToken ? "text" : "password"}
-                value={token}
-                onChange={(e) => setToken(e.target.value)}
-                placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxYZ123456789"
-                className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400 pr-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowToken(!showToken)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              >
-                {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
-
+          <Alert className="bg-blue-100 border-blue-200 text-blue-800">
+            <AlertDescription className="flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Для работы с сервисом используйте нашего бота: <strong>@telexapost_bot</strong>
+            </AlertDescription>
+          </Alert>
+          
           {/* Chat ID */}
           <div className="space-y-2">
             <Label htmlFor="chatId" className="text-gray-700 flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
-              ID канала/чата
+              ID вашего канала/чата
             </Label>
             <Input
               id="chatId"
@@ -105,7 +86,7 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
             </Button>
             <Button
               onClick={testConnection}
-              disabled={!token || isTestingConnection}
+              disabled={!chatId || isTestingConnection}
               variant="outline"
               className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
             >
@@ -114,10 +95,10 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
           </div>
 
           {/* Status */}
-          {config.token && config.chat_id && (
+          {config.chat_id && (
             <Alert className="bg-green-100 border-green-200 text-green-800">
               <AlertDescription>
-                ✅ Бот настроен и готов к отправке сообщений.
+                ✅ Канал настроен и готов к отправке сообщений.
               </AlertDescription>
             </Alert>
           )}
@@ -131,22 +112,19 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
         </CardHeader>
         <CardContent className="space-y-4 text-gray-700">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">1. Создайте Telegram-бота</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">1. Добавьте нашего бота в ваш канал</h3>
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
-              <li>Откройте Telegram и найдите @BotFather</li>
-              <li>Отправьте команду /newbot</li>
-              <li>Выберите имя и username для вашего бота</li>
-              <li>Скопируйте токен бота (выглядит как: 1234567890:ABCdef...)</li>
+              <li>Найдите в Telegram бота <strong>@telexapost_bot</strong></li>
+              <li>Добавьте его в ваш канал как администратора</li>
+              <li>Дайте боту права на публикацию сообщений</li>
             </ul>
           </div>
-
+        
           <div>
             <h3 className="font-semibold text-gray-900 mb-2">2. Получите ID вашего канала/чата</h3>
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
               <li>Для публичных каналов: используйте @username_канала</li>
               <li>Для приватных каналов/групп: используйте числовой ID (например, -1001234567890)</li>
-              <li>Добавьте вашего бота в канал как администратора</li>
-              <li>Дайте боту разрешение на публикацию сообщений</li>
             </ul>
           </div>
 

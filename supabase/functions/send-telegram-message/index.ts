@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -17,6 +16,17 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    // Get bot token from environment variables
+    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+
+    if (!botToken) {
+      console.error('TELEGRAM_BOT_TOKEN not set in environment variables')
+      return new Response(JSON.stringify({ error: 'Bot token not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
 
     // Get all scheduled posts that should be sent now (scheduled_time <= now)
     const now = new Date()
@@ -47,24 +57,6 @@ serve(async (req) => {
       })
     }
 
-    // Get bot configuration
-    const { data: botConfig, error: configError } = await supabase
-      .from('bot_configs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
-
-    if (configError || !botConfig) {
-      console.error('Error fetching bot config:', configError)
-      return new Response(JSON.stringify({ error: 'Bot configuration not found' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
-    }
-
-    console.log('Bot config found, token length:', botConfig.token?.length || 0)
-
     const results = []
 
     // Send each post
@@ -73,7 +65,25 @@ serve(async (req) => {
         console.log('Processing post:', post.id, 'scheduled for:', post.scheduled_time)
         
         let telegramResponse
-        const chatId = post.chat_id || botConfig.chat_id
+        // Use post-specific chat_id
+        const chatId = post.chat_id
+
+        if (!chatId) {
+          console.error('No chat ID specified for post:', post.id)
+          results.push({ 
+            postId: post.id, 
+            status: 'failed', 
+            error: 'No chat ID specified' 
+          })
+          
+          // Mark as failed
+          await supabase
+            .from('posts')
+            .update({ status: 'failed' })
+            .eq('id', post.id)
+            
+          continue
+        }
 
         if (post.image_url) {
           // Check if it's a base64 image
@@ -98,7 +108,7 @@ serve(async (req) => {
             formData.append('parse_mode', 'HTML')
             formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png')
 
-            telegramResponse = await fetch(`https://api.telegram.org/bot${botConfig.token}/sendPhoto`, {
+            telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
               method: 'POST',
               body: formData
             })
@@ -113,7 +123,7 @@ serve(async (req) => {
               parse_mode: 'HTML'
             }
 
-            telegramResponse = await fetch(`https://api.telegram.org/bot${botConfig.token}/sendPhoto`, {
+            telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(photoData)
@@ -129,7 +139,7 @@ serve(async (req) => {
             parse_mode: 'HTML'
           }
 
-          telegramResponse = await fetch(`https://api.telegram.org/bot${botConfig.token}/sendMessage`, {
+          telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(messageData)

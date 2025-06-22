@@ -1,4 +1,3 @@
-
 -- Create table for storing scheduled posts
 CREATE TABLE public.posts (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -8,7 +7,8 @@ CREATE TABLE public.posts (
   status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'sent', 'failed')),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
   chat_id TEXT,
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  user_id UUID REFERENCES auth.users(id)
 );
 
 -- Create table for storing bot configuration
@@ -17,12 +17,15 @@ CREATE TABLE public.bot_configs (
   token TEXT NOT NULL,
   chat_id TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  user_id UUID REFERENCES auth.users(id)
 );
 
 -- Create indexes for better performance
 CREATE INDEX idx_posts_status ON public.posts(status);
 CREATE INDEX idx_posts_scheduled_time ON public.posts(scheduled_time);
+CREATE INDEX idx_posts_user_id ON public.posts(user_id);
+CREATE INDEX idx_bot_configs_user_id ON public.bot_configs(user_id);
 
 -- Enable Row Level Security (RLS) - making tables public for now since no auth is implemented
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
