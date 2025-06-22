@@ -444,12 +444,37 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
                               
                               {/* Preview */}
                               {editContent && (
-                                <div className="mt-4 border rounded-md p-3 bg-gray-50">
-                                  <Label className="text-sm text-gray-500 mb-2 block">Предпросмотр:</Label>
-                                  <div 
-                                    className="prose prose-sm max-w-none"
-                                    dangerouslySetInnerHTML={renderFormattedContent(editContent)}
-                                  ></div>
+                                <div className="mt-4 border rounded-md overflow-hidden">
+                                  <div className="bg-[#0088cc] text-white p-2 text-xs">
+                                    <div className="font-medium">Предпросмотр в Telegram</div>
+                                  </div>
+                                  <div className="bg-[#F5F5F5] p-3">
+                                    <div className="bg-white rounded-lg shadow-sm p-3 max-w-[80%] relative">
+                                      <div 
+                                        className="prose prose-sm max-w-none text-gray-800"
+                                        dangerouslySetInnerHTML={renderFormattedContent(editContent)}
+                                      ></div>
+                                      <div className="text-xs text-gray-500 text-right mt-1 flex justify-end items-center gap-1">
+                                        {editScheduledTime ? (
+                                          <>
+                                            {new Date(editScheduledTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                                              <path d="M12 6v6l4 2" />
+                                            </svg>
+                                          </>
+                                        ) : (
+                                          <>
+                                            {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                                              <path d="M12 6v6l4 2" />
+                                            </svg>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -496,18 +521,37 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="prose prose-sm max-w-none text-gray-900">
-                    <div dangerouslySetInnerHTML={renderFormattedContent(post.content)} />
-                  </div>
-                  {post.image_url && (
-                    <div className="mt-4">
-                      <img
-                        src={post.image_url}
-                        alt="Изображение поста"
-                        className="rounded-lg max-h-64 mx-auto"
-                      />
+                  <div className="bg-[#F5F5F5] rounded-lg overflow-hidden">
+                    <div className="bg-white rounded-lg shadow-sm m-3 p-3 relative">
+                      {post.image_url && (
+                        <div className="mb-2">
+                          <img
+                            src={post.image_url}
+                            alt="Изображение поста"
+                            className="w-full rounded-lg"
+                          />
+                        </div>
+                      )}
+                      <div className="prose prose-sm max-w-none text-gray-800">
+                        <div dangerouslySetInnerHTML={renderFormattedContent(post.content)} />
+                      </div>
+                      <div className="text-xs text-gray-500 text-right mt-1 flex justify-end items-center gap-1">
+                        {new Date(post.scheduled_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={post.status === 'sent' ? "text-green-500" : "text-gray-400"}>
+                          {post.status === 'sent' ? (
+                            <>
+                              <path d="M20 6 9 17l-5-5" />
+                            </>
+                          ) : (
+                            <>
+                              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                              <path d="M12 6v6l4 2" />
+                            </>
+                          )}
+                        </svg>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
