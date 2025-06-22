@@ -33,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="text-2xl font-bold tracking-tight cursor-pointer" 
             onClick={() => navigate('/')}
           >
-            TelePost Scheduler
+            Telexa
           </h1>
           
           {showNavigation && isMainPage && (
@@ -45,14 +45,6 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <Activity className="h-4 w-4 mr-2" />
                 Дашборд
-              </Button>
-              <Button
-                variant={activeView === 'editor' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onViewChange && onViewChange('editor')}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Создать пост
               </Button>
               <Button
                 variant={activeView === 'posts' ? 'default' : 'ghost'}
@@ -67,6 +59,16 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
+          {isMainPage && onViewChange && (
+            <Button
+              className="bg-[#0088cc] hover:bg-[#0077b6] text-white"
+              size="sm"
+              onClick={() => onViewChange('editor')}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Создать пост
+            </Button>
+          )}
           {isMainPage && onSendScheduled && (
             <Button variant="outline" onClick={onSendScheduled} disabled={sendingPosts}>
               {sendingPosts ? (
@@ -92,8 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
             Дашборд
           </Button>
           <Button
-            variant={activeView === 'editor' ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
+            className="flex-1 rounded-none bg-[#0088cc] hover:bg-[#0077b6] text-white"
             onClick={() => onViewChange && onViewChange('editor')}
           >
             <Plus className="h-4 w-4 mr-2" />

@@ -49,7 +49,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold">
-            TelePost Scheduler
+            Telexa
           </CardTitle>
           <CardDescription className="text-center">
             Планируйте и автоматизируйте отправку сообщений в Telegram
