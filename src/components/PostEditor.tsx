@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TelegramPreview } from './TelegramPreview';
+import { AIContentGenerator } from './AIContentGenerator';
 
 interface PostEditorProps {
   onSubmit: (post: {
@@ -196,280 +197,295 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     }, 0);
   }, [content]);
 
+  // Handle AI generated content
+  const handleContentGenerated = (generatedContent: string) => {
+    setContent(generatedContent);
+    toast({
+      title: "Контент сгенерирован",
+      description: "AI успешно создал текст для вашего поста.",
+    });
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="bg-white border-gray-200 h-fit">
-        <CardHeader>
-          <CardTitle className="text-gray-900">
-            Создать новый пост
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Content Editor */}
-            <div className="space-y-2">
-              <Label htmlFor="content" className="text-gray-700">Содержание поста</Label>
-              
-              {/* Formatting Toolbar */}
-              <div className="flex flex-wrap gap-1 mb-2 p-1 bg-gray-50 border border-gray-300 rounded-md">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => formatText('b')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Bold className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Жирный</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+      <div className="space-y-6">
+        {/* AI Content Generator */}
+        <AIContentGenerator onContentGenerated={handleContentGenerated} />
+        
+        {/* Post Editor */}
+        <Card className="bg-white border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-gray-900">
+              Создать новый пост
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Content Editor */}
+              <div className="space-y-2">
+                <Label htmlFor="content" className="text-gray-700">Содержание поста</Label>
+                
+                {/* Formatting Toolbar */}
+                <div className="flex flex-wrap gap-1 mb-2 p-1 bg-gray-50 border border-gray-300 rounded-md">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => formatText('b')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Bold className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Жирный</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => formatText('i')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Italic className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Курсив</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => formatText('i')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Italic className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Курсив</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => formatText('u')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Underline className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Подчеркнутый</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => formatText('u')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Underline className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Подчеркнутый</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => formatText('code')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Code className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Код</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => formatText('code')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Code className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Код</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={insertLink}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Link className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Ссылка</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={insertLink}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Link className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ссылка</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => formatText('ul')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <List className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Маркированный список</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => formatText('ul')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Маркированный список</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => formatText('ol')}
-                        className="h-8 w-8 p-0"
-                      >
-                        <ListOrdered className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Нумерованный список</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => formatText('ol')}
+                          className="h-8 w-8 p-0"
+                        >
+                          <ListOrdered className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Нумерованный список</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                
+                <Textarea
+                  id="content"
+                  ref={textareaRef}
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Напишите содержание вашего поста здесь... Используйте панель форматирования для стилизации текста"
+                  className="min-h-[120px] bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400 font-mono"
+                  maxLength={4096}
+                />
+                <div className="text-right text-sm text-gray-600">
+                  {content.length}/4096 символов
+                </div>
               </div>
-              
-              <Textarea
-                id="content"
-                ref={textareaRef}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Напишите содержание вашего поста здесь... Используйте панель форматирования для стилизации текста"
-                className="min-h-[120px] bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400 font-mono"
-                maxLength={4096}
-              />
-              <div className="text-right text-sm text-gray-600">
-                {content.length}/4096 символов
-              </div>
-            </div>
 
-            {/* Image Upload Area */}
-            <div className="space-y-2">
-              <Label className="text-gray-700">Изображения (опционально, до 10 шт.)</Label>
-              <div
-                className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
-                  dragActive
-                    ? 'border-blue-400 bg-blue-50'
-                    : 'border-gray-300 bg-gray-50'
-                } hover:border-blue-400 hover:bg-blue-50`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                {imageUrls.length > 0 ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {imageUrls.map((url, index) => (
-                        <div key={index} className="relative group">
-                          <img
-                            src={url}
-                            alt={`Изображение ${index + 1}`}
-                            className="h-24 w-full object-cover rounded-lg shadow-sm"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
+              {/* Image Upload Area */}
+              <div className="space-y-2">
+                <Label className="text-gray-700">Изображения (опционально, до 10 шт.)</Label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+                    dragActive
+                      ? 'border-blue-400 bg-blue-50'
+                      : 'border-gray-300 bg-gray-50'
+                  } hover:border-blue-400 hover:bg-blue-50`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  {imageUrls.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {imageUrls.map((url, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={url}
+                              alt={`Изображение ${index + 1}`}
+                              className="h-24 w-full object-cover rounded-lg shadow-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {imageUrls.length < 10 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                        >
+                          Добавить ещё изображение
+                        </Button>
+                      )}
                     </div>
-                    
-                    {imageUrls.length < 10 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                      >
-                        Добавить ещё изображение
-                      </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <Upload className="w-12 h-12 mx-auto text-gray-400" />
-                    <div>
-                      <p className="text-gray-700 mb-2">Перетащите изображения сюда, или</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                      >
-                        Выберите файлы
-                      </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      <Upload className="w-12 h-12 mx-auto text-gray-400" />
+                      <div>
+                        <p className="text-gray-700 mb-2">Перетащите изображения сюда, или</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                        >
+                          Выберите файлы
+                        </Button>
+                      </div>
                     </div>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInput}
+                    className="hidden"
+                    multiple
+                  />
+                </div>
+                {imageUrls.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    {imageUrls.length}/10 изображений
                   </div>
                 )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInput}
-                  className="hidden"
-                  multiple
+              </div>
+
+              {/* Chat ID */}
+              <div className="space-y-2">
+                <Label htmlFor="chatId" className="text-gray-700">  
+                  ID канала/чата (опционально)
+                </Label>
+                <Input
+                  id="chatId"
+                  value={chatId}
+                  onChange={(e) => setChatId(e.target.value)}
+                  placeholder="@your_channel или -1001234567890 (если не указано, используется значение из .env)"
+                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
                 />
               </div>
-              {imageUrls.length > 0 && (
-                <div className="text-sm text-gray-600">
-                  {imageUrls.length}/10 изображений
-                </div>
-              )}
-            </div>
 
-            {/* Chat ID */}
-            <div className="space-y-2">
-              <Label htmlFor="chatId" className="text-gray-700">  
-                ID канала/чата (опционально)
-              </Label>
-              <Input
-                id="chatId"
-                value={chatId}
-                onChange={(e) => setChatId(e.target.value)}
-                placeholder="@your_channel или -1001234567890 (если не указано, используется значение из .env)"
-                className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
-              />
-            </div>
+              {/* Schedule Datetime */}
+              <div className="space-y-2">
+                <Label htmlFor="scheduledTime" className="text-gray-700">
+                  Время публикации
+                </Label>
+                <DateTimePicker date={scheduledDate} setDate={setScheduledDate} />
+              </div>
 
-            {/* Schedule Datetime */}
-            <div className="space-y-2">
-              <Label htmlFor="scheduledTime" className="text-gray-700">
-                Время публикации
-              </Label>
-              <DateTimePicker date={scheduledDate} setDate={setScheduledDate} />
-            </div>
-
-            {/* Submit Button */}
-            <Button 
-              type="submit" 
-              className="w-fit bg-[#0088cc] hover:bg-[#0077b6] text-white"
-            >
-              Запланировать пост
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              {/* Submit Button */}
+              <Button 
+                type="submit" 
+                className="w-fit bg-[#0088cc] hover:bg-[#0077b6] text-white"
+              >
+                Запланировать пост
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Используем компонент TelegramPreview вместо встроенного предпросмотра */}
       <TelegramPreview 
