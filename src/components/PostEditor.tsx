@@ -229,7 +229,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-fit bg-[#0088cc] hover:bg-[#0077b6] text-white"
             >
               Запланировать пост
             </Button>
