@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { PostEditor } from '@/components/PostEditor';
 import { ScheduledPosts } from '@/components/ScheduledPosts';
-import { BotSettings } from '@/components/BotSettings';
 import { Calendar as ScheduleCalendar } from '@/components/ScheduleCalendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Send, Calendar as CalendarIcon, Settings, List, Clock, CheckCircle, AlertCircle, Plus, Activity, Bot } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserMenu } from '@/components/auth/UserMenu';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Header } from '@/components/layout/Header';
 
 export interface Post {
   id: string;
@@ -147,6 +145,9 @@ const Index = () => {
         title: "Настройки сохранены",
         description: "ID вашего канала был успешно сохранен.",
       });
+      
+      // Reload posts with new config if needed
+      loadData();
     } catch (error) {
       console.error('Error saving bot config:', error);
       toast({
@@ -364,111 +365,12 @@ const Index = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Хедер с навигацией и профилем */}
-      <header className="border-b bg-card shadow-sm">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold tracking-tight">TelePost Scheduler</h1>
-            <div className="lg:flex gap-2 items-center hidden">
-              <Button
-                variant={activeView === 'dashboard' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('dashboard')}
-              >
-                <Activity className="h-4 w-4 mr-2" />
-                Дашборд
-              </Button>
-              <Button
-                variant={activeView === 'editor' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('editor')}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Создать пост
-              </Button>
-              <Button
-                variant={activeView === 'posts' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('posts')}
-              >
-                <List className="h-4 w-4 mr-2" />
-                Посты
-              </Button>
-              <Button
-                variant={activeView === 'calendar' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('calendar')}
-              >
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Календарь
-              </Button>
-              <Button
-                variant={activeView === 'settings' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveView('settings')}
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Настройки
-              </Button>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={sendScheduledPosts} disabled={sendingPosts}>
-              {sendingPosts ? (
-                <Clock className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Отправить запланированные
-            </Button>
-            <UserMenu />
-          </div>
-        </div>
-        
-        {/* Мобильная навигация */}
-        <div className="flex lg:hidden border-t overflow-x-auto">
-          <Button
-            variant={activeView === 'dashboard' ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
-            onClick={() => setActiveView('dashboard')}
-          >
-            <Activity className="h-4 w-4 mr-2" />
-            Дашборд
-          </Button>
-          <Button
-            variant={activeView === 'editor' ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
-            onClick={() => setActiveView('editor')}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Создать
-          </Button>
-          <Button
-            variant={activeView === 'posts' ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
-            onClick={() => setActiveView('posts')}
-          >
-            <List className="h-4 w-4 mr-2" />
-            Посты
-          </Button>
-          <Button
-            variant={activeView === 'calendar' ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
-            onClick={() => setActiveView('calendar')}
-          >
-            <CalendarIcon className="h-4 w-4 mr-2" />
-            Календарь
-          </Button>
-          <Button
-            variant={activeView === 'settings' ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
-            onClick={() => setActiveView('settings')}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Настройки
-          </Button>
-        </div>
-      </header>
+      <Header 
+        activeView={activeView}
+        onViewChange={setActiveView}
+        onSendScheduled={sendScheduledPosts}
+        sendingPosts={sendingPosts}
+      />
       
       {/* Контент */}
       <main className="flex-1 overflow-auto bg-muted/40 p-4">
@@ -571,6 +473,9 @@ const Index = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Schedule Calendar */}
+              <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
             </div>
           )}
 
@@ -594,25 +499,6 @@ const Index = () => {
                   onUpdate={updatePost} 
                   onDelete={deletePost} 
                 />
-              </CardContent>
-            </Card>
-          )}
-
-          {activeView === 'calendar' && (
-                <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
-          )}
-
-          {activeView === 'settings' && (
-            <Card className="border-gray-200 bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-900">
-                  <Settings className="w-5 h-5 text-gray-600" />
-                  <span>Настройки бота</span>
-                </CardTitle>
-                <CardDescription>Настройка подключения вашего Телеграм-бота</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <BotSettings config={botConfig} onSave={saveBotConfig} />
               </CardContent>
             </Card>
           )}

@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/lib/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             {/* Защищенные маршруты */}
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Index />} />
+              <Route path="/profile" element={<Profile />} />
               {/* Добавьте другие защищенные маршруты здесь */}
             </Route>
             
