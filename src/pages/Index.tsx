@@ -361,14 +361,6 @@ const Index = () => {
   const failedCount = posts.filter(p => p.status === 'failed').length;
   const isConnected = botConfig.token && botConfig.chat_id;
 
-  const navigation = [
-    { id: 'dashboard', label: 'Дашборд', icon: Activity },
-    { id: 'editor', label: 'Создать пост', icon: Plus },
-    { id: 'posts', label: 'Все посты', icon: List },
-    { id: 'calendar', label: 'Календарь', icon: CalendarIcon },
-    { id: 'settings', label: 'Настройки бота', icon: Settings },
-  ];
-
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Хедер с навигацией и профилем */}
@@ -384,6 +376,14 @@ const Index = () => {
               >
                 <Activity className="h-4 w-4 mr-2" />
                 Дашборд
+              </Button>
+              <Button
+                variant={activeView === 'editor' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveView('editor')}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Создать пост
               </Button>
               <Button
                 variant={activeView === 'posts' ? 'default' : 'ghost'}
@@ -436,6 +436,14 @@ const Index = () => {
             Дашборд
           </Button>
           <Button
+            variant={activeView === 'editor' ? 'default' : 'ghost'}
+            className="flex-1 rounded-none"
+            onClick={() => setActiveView('editor')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Создать
+          </Button>
+          <Button
             variant={activeView === 'posts' ? 'default' : 'ghost'}
             className="flex-1 rounded-none"
             onClick={() => setActiveView('posts')}
@@ -465,27 +473,6 @@ const Index = () => {
       {/* Контент */}
       <main className="flex-1 overflow-auto bg-muted/40 p-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Navigation */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveView(item.id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                    activeView === item.id
-                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-white'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
           {/* Dashboard View */}
           {activeView === 'dashboard' && (
             <div className="space-y-8">
