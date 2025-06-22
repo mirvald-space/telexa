@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Image as ImageIcon, Calendar, Clock, MessageCircle } from 'lucide-react';
+import { Upload, Calendar, Clock, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface PostEditorProps {
@@ -130,8 +130,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     <div className="space-y-6">
       <Card className="bg-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-gray-900 flex items-center gap-2">
-            <ImageIcon className="w-5 h-5" />
+          <CardTitle className="text-gray-900">
             Создать новый пост
           </CardTitle>
         </CardHeader>
