@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Define the Post interface to match the database schema
 interface Post {
   id: string;
   content: string;
   image_url?: string;
-  image_urls?: string[] | string; // Can be array or string depending on how it's returned from DB
+  image_urls?: string[];
   scheduled_time: string;
   status: 'scheduled' | 'sent' | 'failed';
   created_at: string;
@@ -14,7 +13,6 @@ interface Post {
   user_id?: string;
 }
 
-// Define the result item interface
 interface ResultItem {
   postId: string;
   status: string;
@@ -27,396 +25,212 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Парсинг массива изображений
+function parseImageUrls(imageUrls: string[] | string | null | undefined): string[] {
+  if (!imageUrls) return [];
+  
+  if (Array.isArray(imageUrls)) return imageUrls;
+  
+  if (typeof imageUrls === 'string') {
+    try {
+      return JSON.parse(imageUrls);
+    } catch {
+      // PostgreSQL array format {url1,url2}
+      if (imageUrls.startsWith('{') && imageUrls.endsWith('}')) {
+        return imageUrls.slice(1, -1).split(',').map(url => url.replace(/^"|"$/g, '').trim());
+      }
+    }
+  }
+  
+  return [];
+}
+
+// Отправка одного изображения
+async function sendPhoto(botToken: string, chatId: string, imageUrl: string, caption: string) {
+  if (imageUrl.startsWith('data:image/')) {
+    const [header, base64Data] = imageUrl.split(',');
+    const mimeType = header.split(';')[0].split(':')[1];
+    
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+
+    const formData = new FormData();
+    formData.append('chat_id', chatId);
+    formData.append('caption', caption);
+    formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png');
+
+    return fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+      method: 'POST',
+      body: formData
+    });
+  } else {
+    return fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        photo: imageUrl,
+        caption: caption
+      })
+    });
+  }
+}
+
+// Отправка медиагруппы
+async function sendMediaGroup(botToken: string, chatId: string, imageUrls: string[], caption: string) {
+  const media = imageUrls.map((url, index) => ({
+    type: 'photo' as const,
+    media: url,
+    ...(index === 0 ? { caption } : {})
+  }));
+
+  return fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      media: media
+    })
+  });
+}
+
+// Отправка текста
+async function sendMessage(botToken: string, chatId: string, text: string) {
+  return fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: text
+    })
+  });
+}
+
+// Обработка одного поста
+async function processPost(post: Post, botToken: string, supabase: any): Promise<ResultItem> {
+  const { id, content, image_url, image_urls, chat_id } = post;
+  
+  console.log('Processing post:', id);
+  
+  if (!chat_id) {
+    await supabase.from('posts').update({ status: 'failed' }).eq('id', id);
+    return { postId: id, status: 'failed', error: 'No chat ID specified' };
+  }
+
+  try {
+    const parsedImageUrls = parseImageUrls(image_urls);
+    const hasLegacyImage = image_url?.trim();
+    const hasImages = parsedImageUrls.length > 0;
+    
+    let telegramResponse;
+    
+    if (hasImages) {
+      if (parsedImageUrls.length === 1) {
+        telegramResponse = await sendPhoto(botToken, chat_id, parsedImageUrls[0], content);
+      } else {
+        telegramResponse = await sendMediaGroup(botToken, chat_id, parsedImageUrls, content);
+      }
+    } else if (hasLegacyImage) {
+      telegramResponse = await sendPhoto(botToken, chat_id, image_url!, content);
+    } else {
+      telegramResponse = await sendMessage(botToken, chat_id, content);
+    }
+
+    const result = await telegramResponse.json();
+    
+    if (telegramResponse.ok && result.ok) {
+      await supabase.from('posts').update({ status: 'sent' }).eq('id', id);
+      
+      const messageId = Array.isArray(result.result) 
+        ? result.result[0].message_id 
+        : result.result.message_id;
+        
+      console.log('Successfully sent post:', id);
+      return { postId: id, status: 'sent', messageId };
+    } else {
+      await supabase.from('posts').update({ status: 'failed' }).eq('id', id);
+      console.error('Failed to send post:', id, 'Error:', result.description);
+      return { postId: id, status: 'failed', error: result.description || 'Unknown error' };
+    }
+  } catch (error) {
+    await supabase.from('posts').update({ status: 'failed' }).eq('id', id);
+    console.error('Error sending post:', id, error);
+    return { 
+      postId: id, 
+      status: 'failed', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    );
 
-    // Get bot token from environment variables
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
-
+    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!botToken) {
-      console.error('TELEGRAM_BOT_TOKEN not set in environment variables')
       return new Response(JSON.stringify({ error: 'Bot token not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      });
     }
 
-    // Get all scheduled posts that should be sent now (scheduled_time <= now)
-    const now = new Date()
-    const nowISO = now.toISOString()
-
-    console.log('Checking for posts scheduled at or before:', nowISO)
+    const nowISO = new Date().toISOString();
+    console.log('Checking for posts scheduled at or before:', nowISO);
 
     const { data: postsData, error: fetchError } = await supabase
       .from('posts')
       .select('*')
       .eq('status', 'scheduled')
-      .lte('scheduled_time', nowISO)
+      .lte('scheduled_time', nowISO);
 
     if (fetchError) {
-      console.error('Error fetching posts:', fetchError)
+      console.error('Error fetching posts:', fetchError);
       return new Response(JSON.stringify({ error: 'Failed to fetch posts' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      });
     }
 
-    console.log('Found posts to send:', postsData?.length || 0)
+    console.log('Found posts to send:', postsData?.length || 0);
 
     if (!postsData || postsData.length === 0) {
       return new Response(JSON.stringify({ message: 'No posts to send', results: [] }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+      });
     }
 
-    // Convert the posts data to our Post interface
-    const posts: Post[] = postsData.map(post => ({
-      id: post.id,
-      content: post.content,
-      image_url: post.image_url,
-      image_urls: post.image_urls,
-      scheduled_time: post.scheduled_time,
-      status: post.status,
-      created_at: post.created_at,
-      chat_id: post.chat_id,
-      user_id: post.user_id
-    }));
-
-    const results: ResultItem[] = []
-
-    // Send each post
-    for (const post of posts) {
-      try {
-        console.log('Processing post:', post.id, 'scheduled for:', post.scheduled_time)
-        console.log('Post image_urls:', post.image_urls, 'Type:', typeof post.image_urls)
-        
-        // Ensure image_urls is properly parsed as an array
-        if (post.image_urls && typeof post.image_urls === 'string') {
-          try {
-            post.image_urls = JSON.parse(post.image_urls as string) as string[];
-            console.log('Parsed image_urls from string:', post.image_urls);
-          } catch (e) {
-            console.error('Failed to parse image_urls as JSON:', e);
-            // If it fails to parse as JSON, try to see if it's a PostgreSQL array format
-            if (typeof post.image_urls === 'string' && post.image_urls.startsWith('{') && post.image_urls.endsWith('}')) {
-              // Convert PostgreSQL array format to JS array
-              post.image_urls = post.image_urls.slice(1, -1).split(',').map(url => url.replace(/^"|"$/g, ''));
-              console.log('Parsed image_urls from PostgreSQL array format:', post.image_urls);
-            }
-          }
-        }
-        
-        let telegramResponse
-        // Use post-specific chat_id
-        const chatId = post.chat_id
-
-        if (!chatId) {
-          console.error('No chat ID specified for post:', post.id)
-          results.push({ 
-            postId: post.id, 
-            status: 'failed', 
-            error: 'No chat ID specified' 
-          })
-          
-          // Mark as failed
-          await supabase
-            .from('posts')
-            .update({ status: 'failed' })
-            .eq('id', post.id)
-            
-          continue
-        }
-
-        // Преобразуем переносы строк в теги <br>
-        const contentWithLineBreaks = post.content.replace(/\n/g, '<br>')
-
-        // Проверяем наличие изображений
-        const hasLegacyImage = post.image_url && post.image_url.trim() !== '';
-        const hasImages = Array.isArray(post.image_urls) && post.image_urls.length > 0;
-        
-        console.log('Has legacy image:', hasLegacyImage, 'Has images array:', hasImages);
-
-        if (hasImages && Array.isArray(post.image_urls)) {
-          // Используем новое поле image_urls (массив)
-          if (post.image_urls.length === 1) {
-            // Если только одно изображение, используем sendPhoto
-            const imageUrl = post.image_urls[0];
-            
-            // Проверяем, base64 это или URL
-            if (imageUrl.startsWith('data:image/')) {
-              console.log('Sending single base64 image for post:', post.id);
-              
-              // Обрабатываем base64 изображение
-              const base64Data = imageUrl.split(',')[1];
-              const mimeType = imageUrl.split(';')[0].split(':')[1];
-              
-              // Конвертируем base64 в Uint8Array
-              const binaryString = atob(base64Data);
-              const bytes = new Uint8Array(binaryString.length);
-              for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-
-              // Создаем FormData для загрузки фото
-              const formData = new FormData();
-              formData.append('chat_id', chatId);
-              formData.append('caption', contentWithLineBreaks);
-              formData.append('parse_mode', 'HTML');
-              formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png');
-
-              telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                method: 'POST',
-                body: formData
-              });
-            } else {
-              console.log('Sending single URL image for post:', post.id);
-              
-              // Обрабатываем обычный URL изображения
-              const photoData = {
-                chat_id: chatId,
-                photo: imageUrl,
-                caption: contentWithLineBreaks,
-                parse_mode: 'HTML'
-              };
-
-              telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(photoData)
-              });
-            }
-          } else {
-            // Если несколько изображений, используем sendMediaGroup
-            console.log('Sending multiple images as media group for post:', post.id);
-            
-            // Подготавливаем массив медиа-объектов
-            const media = [];
-            
-            // Обрабатываем каждое изображение
-            for (let i = 0; i < post.image_urls.length; i++) {
-              const imageUrl = post.image_urls[i];
-              
-              if (imageUrl.startsWith('data:image/')) {
-                // Для base64 изображений нам нужно сначала загрузить их на сервер Telegram
-                const base64Data = imageUrl.split(',')[1];
-                const mimeType = imageUrl.split(';')[0].split(':')[1];
-                
-                const binaryString = atob(base64Data);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let j = 0; j < binaryString.length; j++) {
-                  bytes[j] = binaryString.charCodeAt(j);
-                }
-                
-                // Загружаем изображение на сервер Telegram с помощью sendPhoto
-                const formData = new FormData();
-                formData.append('chat_id', chatId);
-                formData.append('photo', new Blob([bytes], { type: mimeType }), `image${i}.png`);
-                // Не добавляем подпись, так как она будет добавлена в медиа-группе
-                
-                const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                  method: 'POST',
-                  body: formData
-                });
-                
-                const uploadResult = await uploadResponse.json();
-                
-                if (uploadResponse.ok && uploadResult.ok) {
-                  // Получаем file_id из результата загрузки
-                  // Берем самый большой размер фото (последний в массиве)
-                  const photoSizes = uploadResult.result.photo;
-                  const fileId = photoSizes[photoSizes.length - 1].file_id;
-                  
-                  // Добавляем загруженное изображение в медиа-группу
-                  const mediaItem: any = {
-                    type: 'photo',
-                    media: fileId
-                  };
-                  
-                  // Добавляем подпись только к первому изображению
-                  if (i === 0) {
-                    mediaItem.caption = contentWithLineBreaks;
-                    mediaItem.parse_mode = 'HTML';
-                  }
-                  
-                  media.push(mediaItem);
-                  
-                  // Удаляем отправленное сообщение, так как оно было нужно только для получения file_id
-                  await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      chat_id: chatId,
-                      message_id: uploadResult.result.message_id
-                    })
-                  });
-                } else {
-                  console.error('Failed to upload image:', uploadResult.description);
-                }
-              } else {
-                // Для URL изображений просто добавляем их в медиа-группу
-                const mediaItem: any = {
-                  type: 'photo',
-                  media: imageUrl
-                };
-                
-                // Добавляем подпись только к первому изображению
-                if (i === 0) {
-                  mediaItem.caption = contentWithLineBreaks;
-                  mediaItem.parse_mode = 'HTML';
-                }
-                
-                media.push(mediaItem);
-              }
-            }
-            
-            // Отправляем медиа-группу
-            if (media.length > 0) {
-              const mediaGroupData = {
-                chat_id: chatId,
-                media: media
-              };
-              
-              telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(mediaGroupData)
-              });
-            } else {
-              // Если не удалось подготовить ни одно изображение, отправляем текстовое сообщение
-              const messageData = {
-                chat_id: chatId,
-                text: contentWithLineBreaks,
-                parse_mode: 'HTML'
-              };
-              
-              telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(messageData)
-              });
-            }
-          }
-        } else if (hasLegacyImage && post.image_url) {
-          // Обратная совместимость со старым полем image_url
-          if (post.image_url.startsWith('data:image/')) {
-            console.log('Sending legacy base64 image for post:', post.id);
-            
-            // Обрабатываем base64 изображение
-            const base64Data = post.image_url.split(',')[1];
-            const mimeType = post.image_url.split(';')[0].split(':')[1];
-            
-            // Конвертируем base64 в Uint8Array
-            const binaryString = atob(base64Data);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              bytes[i] = binaryString.charCodeAt(i);
-            }
-
-            // Создаем FormData для загрузки фото
-            const formData = new FormData();
-            formData.append('chat_id', chatId);
-            formData.append('caption', contentWithLineBreaks);
-            formData.append('parse_mode', 'HTML');
-            formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png');
-
-            telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-              method: 'POST',
-              body: formData
-            });
-          } else {
-            console.log('Sending legacy URL image for post:', post.id);
-            
-            // Обрабатываем обычный URL изображения
-            const photoData = {
-              chat_id: chatId,
-              photo: post.image_url,
-              caption: contentWithLineBreaks,
-              parse_mode: 'HTML'
-            };
-
-            telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(photoData)
-            });
-          }
-        } else {
-          console.log('Sending text message for post:', post.id);
-          
-          // Отправляем текстовое сообщение
-          const messageData = {
-            chat_id: chatId,
-            text: contentWithLineBreaks,
-            parse_mode: 'HTML'
-          };
-
-          telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(messageData)
-          });
-        }
-
-        const telegramResult = await telegramResponse.json();
-        console.log('Telegram API response for post', post.id, ':', telegramResult);
-
-        if (telegramResponse.ok && telegramResult.ok) {
-          // Mark as sent
-          await supabase
-            .from('posts')
-            .update({ status: 'sent' })
-            .eq('id', post.id);
-
-          results.push({ 
-            postId: post.id, 
-            status: 'sent', 
-            messageId: telegramResult.result.message_id 
-          });
-          
-          console.log('Successfully sent post:', post.id);
-        } else {
-          // Mark as failed
-          await supabase
-            .from('posts')
-            .update({ status: 'failed' })
-            .eq('id', post.id);
-
-          const errorDescription = telegramResult.description || 'Unknown error';
-          console.error('Failed to send post:', post.id, 'Error:', errorDescription);
-
-          results.push({ 
-            postId: post.id, 
-            status: 'failed', 
-            error: errorDescription 
-          });
-        }
-      } catch (error) {
-        console.error('Error sending post:', post.id, error);
-        
-        // Mark as failed
-        await supabase
-          .from('posts')
-          .update({ status: 'failed' })
-          .eq('id', post.id);
-
-        results.push({ 
-          postId: post.id, 
-          status: 'failed', 
-          error: error.message 
-        });
-      }
+    const results: ResultItem[] = [];
+    
+    for (const postData of postsData) {
+      const post: Post = {
+        id: postData.id,
+        content: postData.content,
+        image_url: postData.image_url,
+        image_urls: postData.image_urls,
+        scheduled_time: postData.scheduled_time,
+        status: postData.status,
+        created_at: postData.created_at,
+        chat_id: postData.chat_id,
+        user_id: postData.user_id
+      };
+      
+      const result = await processPost(post, botToken, supabase);
+      results.push(result);
     }
 
-    console.log('Processing complete. Results:', results);
+    console.log('Processing complete. Results:', results.length);
 
     return new Response(JSON.stringify({ results }), {
       status: 200,
@@ -425,7 +239,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Function error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
