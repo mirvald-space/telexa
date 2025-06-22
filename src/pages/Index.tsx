@@ -28,11 +28,13 @@ export interface BotConfig {
 }
 
 const Index = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [botConfig, setBotConfig] = useState<BotConfig>({ token: '', chat_id: '' });
   const [activeView, setActiveView] = useState('dashboard');
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sendingPosts, setSendingPosts] = useState(false);
+  const [botConfig, setBotConfig] = useState<BotConfig>({
+    token: '',
+    chat_id: '',
+  });
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -297,55 +299,6 @@ const Index = () => {
     }
   };
 
-  // Manually trigger sending posts (for testing)
-  const sendScheduledPosts = async () => {
-    if (!user) {
-      toast({
-        title: "Ошибка авторизации",
-        description: "Пожалуйста, войдите в систему",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setSendingPosts(true);
-    try {
-      // Передаем ID пользователя в функцию для обработки только его постов
-      const { data, error } = await supabase.functions.invoke('send-telegram-message', {
-        body: { user_id: user.id }
-      });
-      
-      if (error) throw error;
-
-      // Reload posts to see updated statuses
-      await loadData();
-      
-      if (data.results && data.results.length > 0) {
-        const sentCount = data.results.filter(r => r.status === 'sent').length;
-        const failedCount = data.results.filter(r => r.status === 'failed').length;
-        
-        toast({
-          title: "Посты обработаны",
-          description: `${sentCount} отправлено успешно, ${failedCount} с ошибками`,
-        });
-      } else {
-        toast({
-          title: "Нет постов для отправки",
-          description: "Все запланированные посты либо в будущем, либо уже отправлены.",
-        });
-      }
-    } catch (error) {
-      console.error('Error sending posts:', error);
-      toast({
-        title: "Ошибка отправки постов",
-        description: "Не удалось отправить запланированные посты. Проверьте конфигурацию бота.",
-        variant: "destructive",
-      });
-    } finally {
-      setSendingPosts(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -368,8 +321,6 @@ const Index = () => {
       <Header 
         activeView={activeView}
         onViewChange={setActiveView}
-        onSendScheduled={sendScheduledPosts}
-        sendingPosts={sendingPosts}
       />
       
       {/* Контент */}

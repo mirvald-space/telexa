@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Activity, Plus, List, Send } from 'lucide-react';
+import { Activity, Plus, List } from 'lucide-react';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -8,16 +8,12 @@ interface HeaderProps {
   onViewChange?: (view: string) => void;
   activeView?: string;
   showNavigation?: boolean;
-  onSendScheduled?: () => void;
-  sendingPosts?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   onViewChange, 
   activeView = 'dashboard',
-  showNavigation = true,
-  onSendScheduled,
-  sendingPosts = false
+  showNavigation = true
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,8 +22,8 @@ export const Header: React.FC<HeaderProps> = ({
   const isMainPage = location.pathname === '/';
 
   return (
-    <header className="border-b bg-card shadow-sm">
-      <div className="flex items-center justify-between p-4">
+    <header className="max-w-4xl flex justify-between items-center mx-auto p-4">
+
         <div className="flex items-center gap-4">
           <h1 
             className="text-2xl font-bold tracking-tight cursor-pointer" 
@@ -69,18 +65,8 @@ export const Header: React.FC<HeaderProps> = ({
               Создать пост
             </Button>
           )}
-          {isMainPage && onSendScheduled && (
-            <Button variant="outline" onClick={onSendScheduled} disabled={sendingPosts}>
-              {sendingPosts ? (
-                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-b-2 border-current"></div>
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Отправить запланированные
-            </Button>
-          )}
           <UserMenu />
-        </div>
+
       </div>
       
       {showNavigation && isMainPage && (
