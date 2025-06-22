@@ -163,11 +163,13 @@ serve(async (req) => {
                   bytes[j] = binaryString.charCodeAt(j);
                 }
                 
-                // Загружаем изображение на сервер Telegram
+                // Загружаем изображение на сервер Telegram с помощью sendPhoto
                 const formData = new FormData();
+                formData.append('chat_id', chatId);
                 formData.append('photo', new Blob([bytes], { type: mimeType }), `image${i}.png`);
+                // Не добавляем подпись, так как она будет добавлена в медиа-группе
                 
-                const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/uploadPhoto`, {
+                const uploadResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
                   method: 'POST',
                   body: formData
                 });
@@ -175,10 +177,15 @@ serve(async (req) => {
                 const uploadResult = await uploadResponse.json();
                 
                 if (uploadResponse.ok && uploadResult.ok) {
+                  // Получаем file_id из результата загрузки
+                  // Берем самый большой размер фото (последний в массиве)
+                  const photoSizes = uploadResult.result.photo;
+                  const fileId = photoSizes[photoSizes.length - 1].file_id;
+                  
                   // Добавляем загруженное изображение в медиа-группу
                   const mediaItem: any = {
                     type: 'photo',
-                    media: uploadResult.result.file_id
+                    media: fileId
                   };
                   
                   // Добавляем подпись только к первому изображению
@@ -188,6 +195,16 @@ serve(async (req) => {
                   }
                   
                   media.push(mediaItem);
+                  
+                  // Удаляем отправленное сообщение, так как оно было нужно только для получения file_id
+                  await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      chat_id: chatId,
+                      message_id: uploadResult.result.message_id
+                    })
+                  });
                 } else {
                   console.error('Failed to upload image:', uploadResult.description);
                 }
