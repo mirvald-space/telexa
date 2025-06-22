@@ -599,18 +599,7 @@ const Index = () => {
           )}
 
           {activeView === 'calendar' && (
-            <Card className="border-gray-200 bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-900">
-                  <CalendarIcon className="w-5 h-5 text-gray-600" />
-                  <span>Календарь</span>
-                </CardTitle>
-                <CardDescription>Визуальный обзор ваших запланированных постов</CardDescription>
-              </CardHeader>
-              <CardContent>
                 <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
-              </CardContent>
-            </Card>
           )}
 
           {activeView === 'settings' && (
