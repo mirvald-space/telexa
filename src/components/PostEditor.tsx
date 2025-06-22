@@ -185,7 +185,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="bg-white border-gray-200">
+      <Card className="bg-white border-gray-200 h-fit">
         <CardHeader>
           <CardTitle className="text-gray-900">
             Создать новый пост
