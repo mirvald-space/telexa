@@ -14,6 +14,7 @@ export interface Post {
   id: string;
   content: string;
   image_url?: string;
+  image_urls?: string[];
   scheduled_time: string;
   status: 'scheduled' | 'sent' | 'failed';
   created_at: string;
@@ -80,6 +81,7 @@ const Index = () => {
           id: post.id,
           content: post.content,
           image_url: post.image_url || undefined,
+          image_urls: (post as any).image_urls || undefined,
           scheduled_time: post.scheduled_time,
           status: post.status as 'scheduled' | 'sent' | 'failed',
           created_at: post.created_at,
@@ -194,7 +196,7 @@ const Index = () => {
         .from('posts')
         .insert([{
           content: postData.content,
-          image_url: postData.image_url,
+          image_urls: postData.image_urls,
           scheduled_time: postData.scheduled_time,
           chat_id: postData.chat_id || botConfig.chat_id, // Используем ID канала из поста или из настроек
           status: 'scheduled',
@@ -208,7 +210,7 @@ const Index = () => {
       const newPost: Post = {
         id: data.id,
         content: data.content,
-        image_url: data.image_url,
+        image_urls: (data as any).image_urls,
         scheduled_time: data.scheduled_time,
         status: data.status as 'scheduled' | 'sent' | 'failed',
         created_at: data.created_at,

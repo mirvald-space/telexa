@@ -3,14 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface TelegramPreviewProps {
   content: string;
-  imageUrl?: string;
+  imageUrls?: string[];
   chatId?: string;
   scheduledDate?: Date;
 }
 
 export const TelegramPreview: React.FC<TelegramPreviewProps> = ({
   content,
-  imageUrl,
+  imageUrls,
   chatId,
   scheduledDate,
 }) => {
@@ -43,15 +43,31 @@ export const TelegramPreview: React.FC<TelegramPreviewProps> = ({
           </div>
           
           {/* Message bubble */}
-          <div className="flex-1 p-4">
+          <div className="flex-1 p-4 overflow-y-auto">
             <div className="bg-white rounded-lg shadow-sm p-3 max-w-[80%] relative">
-              {imageUrl && (
-                <div className="mb-2">
-                  <img
-                    src={imageUrl}
-                    alt="Предпросмотр поста"
-                    className="w-full rounded-lg"
-                  />
+              {imageUrls && imageUrls.length > 0 && (
+                <div className={`mb-2 ${imageUrls.length > 1 ? 'grid grid-cols-2 gap-1' : ''}`}>
+                  {imageUrls.length === 1 ? (
+                    <img
+                      src={imageUrls[0]}
+                      alt="Предпросмотр поста"
+                      className="w-full rounded-lg"
+                    />
+                  ) : (
+                    imageUrls.slice(0, 4).map((url, index) => (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Изображение ${index + 1}`}
+                        className="w-full rounded-lg"
+                      />
+                    ))
+                  )}
+                  {imageUrls.length > 4 && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      + ещё {imageUrls.length - 4} изображений
+                    </div>
+                  )}
                 </div>
               )}
               {content ? (

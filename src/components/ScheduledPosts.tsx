@@ -523,7 +523,31 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
                 <div className="space-y-4">
                   <div className="bg-[#F5F5F5] rounded-lg overflow-hidden">
                     <div className="bg-white rounded-lg shadow-sm m-3 p-3 relative">
-                      {post.image_url && (
+                      {post.image_urls && post.image_urls.length > 0 ? (
+                        <div className={`mb-2 ${post.image_urls.length > 1 ? 'grid grid-cols-2 gap-1' : ''}`}>
+                          {post.image_urls.length === 1 ? (
+                            <img
+                              src={post.image_urls[0]}
+                              alt="Изображение поста"
+                              className="w-full rounded-lg"
+                            />
+                          ) : (
+                            post.image_urls.slice(0, 4).map((url, index) => (
+                              <img
+                                key={index}
+                                src={url}
+                                alt={`Изображение ${index + 1}`}
+                                className="w-full rounded-lg"
+                              />
+                            ))
+                          )}
+                          {post.image_urls.length > 4 && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              + ещё {post.image_urls.length - 4} изображений
+                            </div>
+                          )}
+                        </div>
+                      ) : post.image_url && (
                         <div className="mb-2">
                           <img
                             src={post.image_url}

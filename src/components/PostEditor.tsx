@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, Bold, Italic, Underline, Link, Code, List, ListOrdered } from 'lucide-react';
+import { Upload, Bold, Italic, Underline, Link, Code, List, ListOrdered, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,7 +13,7 @@ import { TelegramPreview } from './TelegramPreview';
 interface PostEditorProps {
   onSubmit: (post: {
     content: string;
-    image_url?: string;
+    image_urls?: string[];
     scheduled_time: string;
     chat_id?: string;
   }) => void;
@@ -21,7 +21,7 @@ interface PostEditorProps {
 
 export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
   const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [chatId, setChatId] = useState('');
   const [dragActive, setDragActive] = useState(false);
@@ -44,14 +44,20 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     e.stopPropagation();
     setDragActive(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      // Обрабатываем все перетащенные файлы
+      Array.from(e.dataTransfer.files).forEach(file => {
+        handleFile(file);
+      });
     }
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      // Обрабатываем все выбранные файлы
+      Array.from(e.target.files).forEach(file => {
+        handleFile(file);
+      });
     }
   };
 
@@ -65,11 +71,21 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       return;
     }
 
+    // Ограничение на количество изображений (максимум 10 для Telegram)
+    if (imageUrls.length >= 10) {
+      toast({
+        title: "Достигнут лимит изображений",
+        description: "Telegram позволяет отправлять максимум 10 изображений в одном сообщении.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // In a real app, you'd upload to Supabase Storage
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        setImageUrl(e.target.result as string);
+        setImageUrls(prev => [...prev, e.target!.result as string]);
         toast({
           title: "Изображение загружено",
           description: "Ваше изображение было добавлено в пост.",
@@ -77,6 +93,10 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -111,14 +131,14 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
     onSubmit({
       content,
-      image_url: imageUrl || undefined,
+      image_urls: imageUrls.length > 0 ? imageUrls : undefined,
       scheduled_time: scheduledDate.toISOString(),
       chat_id: chatId || undefined,
     });
 
     // Reset form
     setContent('');
-    setImageUrl('');
+    setImageUrls([]);
     setScheduledDate(undefined);
     setChatId('');
   };
@@ -342,7 +362,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
             {/* Image Upload Area */}
             <div className="space-y-2">
-              <Label className="text-gray-700">Изображение (опционально)</Label>
+              <Label className="text-gray-700">Изображения (опционально, до 10 шт.)</Label>
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
                   dragActive
@@ -354,46 +374,68 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
               >
-                {imageUrl ? (
+                {imageUrls.length > 0 ? (
                   <div className="space-y-4">
-                    <img
-                      src={imageUrl}
-                      alt="Предпросмотр загрузки"
-                      className="max-h-48 mx-auto rounded-lg shadow-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setImageUrl('')}
-                      className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-                    >
-                      Удалить изображение
-                    </Button>
-                  </div>
-                ) :
-                  <div className="space-y-4">
-                    <Upload className="w-12 h-12 mx-auto text-gray-400" />
-                    <div>
-                      <p className="text-gray-700 mb-2">Перетащите изображение сюда, или</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {imageUrls.map((url, index) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={url}
+                            alt={`Изображение ${index + 1}`}
+                            className="h-24 w-full object-cover rounded-lg shadow-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {imageUrls.length < 10 && (
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
                         className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
                       >
-                        Выберите файл
+                        Добавить ещё изображение
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <Upload className="w-12 h-12 mx-auto text-gray-400" />
+                    <div>
+                      <p className="text-gray-700 mb-2">Перетащите изображения сюда, или</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+                      >
+                        Выберите файлы
                       </Button>
                     </div>
                   </div>
-                }
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleFileInput}
                   className="hidden"
+                  multiple
                 />
               </div>
+              {imageUrls.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  {imageUrls.length}/10 изображений
+                </div>
+              )}
             </div>
 
             {/* Chat ID */}
@@ -432,7 +474,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       {/* Используем компонент TelegramPreview вместо встроенного предпросмотра */}
       <TelegramPreview 
         content={content}
-        imageUrl={imageUrl}
+        imageUrls={imageUrls}
         chatId={chatId}
         scheduledDate={scheduledDate}
       />
