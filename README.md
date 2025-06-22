@@ -1,73 +1,75 @@
-# Welcome to your Lovable project
+# Telepost Scheduler Bot
 
-## Project info
+Приложение для планирования и автоматической отправки сообщений в Telegram-каналы.
 
-**URL**: https://lovable.dev/projects/e8310904-3c57-46c8-853f-2d7875afa5f4
+## Возможности
 
-## How can I edit this code?
+- Планирование постов с указанием времени публикации
+- Прикрепление изображений к постам
+- Мониторинг статуса отправки (запланировано, отправлено, ошибка)
+- Календарная визуализация запланированных постов
+- Управление настройками Telegram-бота
 
-There are several ways of editing your application.
+## Технологии
 
-**Use Lovable**
+- **Frontend**: React, TypeScript, Vite
+- **UI компоненты**: shadcn/ui, Tailwind CSS
+- **Хранение данных**: Supabase
+- **Роутинг**: React Router
+- **Управление состоянием**: React Query
+- **Форматирование дат**: date-fns
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e8310904-3c57-46c8-853f-2d7875afa5f4) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Установка
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Клонирование репозитория
+git clone https://github.com/yourusername/telepost-scheduler-bot.git
+cd telepost-scheduler-bot
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Установка зависимостей
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Локальный запуск
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Настройка Telegram-бота
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Создайте бот через [@BotFather](https://t.me/BotFather) в Telegram
+2. Получите токен бота
+3. Добавьте бота администратором в ваш канал
+4. В приложении перейдите в "Настройки бота" и введите полученный токен и ID канала
 
-**Use GitHub Codespaces**
+## Структура проекта
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+src/
+├── components/        # Компоненты React
+│   ├── ui/            # UI компоненты shadcn
+│   ├── BotSettings    # Настройка бота
+│   ├── PostEditor     # Редактор постов
+│   └── ScheduledPosts # Список постов
+├── hooks/             # React хуки
+├── integrations/      # Интеграции с внешними API
+│   └── supabase/      # Клиент Supabase
+├── lib/              # Вспомогательные функции
+├── pages/            # Страницы приложения
+└── App.tsx           # Корневой компонент
+```
 
-## What technologies are used for this project?
+## Разработка
 
-This project is built with:
+```sh
+# Запуск в режиме разработки
+npm run dev
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Сборка проекта
+npm run build
 
-## How can I deploy this project?
+# Предпросмотр собранного проекта
+npm run preview
+```
 
-Simply open [Lovable](https://lovable.dev/projects/e8310904-3c57-46c8-853f-2d7875afa5f4) and click on Share -> Publish.
+## Лицензия
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT
