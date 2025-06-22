@@ -1,6 +1,6 @@
-# Telepost Scheduler Bot
+# TeleAI Poster
 
-Приложение для планирования и автоматической отправки сообщений в Telegram-каналы.
+Приложение для планирования и автоматической отправки сообщений в Telegram-каналы с использованием AI для оптимизации контента.
 
 ## Возможности
 
@@ -9,6 +9,7 @@
 - Мониторинг статуса отправки (запланировано, отправлено, ошибка)
 - Календарная визуализация запланированных постов
 - Управление настройками Telegram-бота
+- AI-рекомендации для повышения эффективности постов
 
 ## Технологии
 
@@ -18,13 +19,14 @@
 - **Роутинг**: React Router
 - **Управление состоянием**: React Query
 - **Форматирование дат**: date-fns
+- **AI-интеграция**: OpenAI API
 
 ## Установка
 
 ```sh
 # Клонирование репозитория
-git clone https://github.com/yourusername/telepost-scheduler-bot.git
-cd telepost-scheduler-bot
+git clone https://github.com/yourusername/teleai-poster.git
+cd teleai-poster
 
 # Установка зависимостей
 npm install

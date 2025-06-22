@@ -289,7 +289,7 @@ const Index = () => {
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Телеграм Планировщик</h1>
+                <h1 className="text-xl font-bold text-gray-900">TeleAI Poster</h1>
                 <p className="text-sm text-gray-500">Автоматизируйте посты в вашем канале</p>
               </div>
             </div>
