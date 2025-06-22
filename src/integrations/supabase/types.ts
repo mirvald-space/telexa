@@ -16,6 +16,7 @@ export type Database = {
           id: string
           token: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           chat_id: string
@@ -23,6 +24,7 @@ export type Database = {
           id?: string
           token: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           chat_id?: string
@@ -30,8 +32,16 @@ export type Database = {
           id?: string
           token?: string
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "bot_configs_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       posts: {
         Row: {
@@ -43,6 +53,7 @@ export type Database = {
           scheduled_time: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           chat_id?: string | null
@@ -53,6 +64,7 @@ export type Database = {
           scheduled_time: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           chat_id?: string | null
@@ -63,8 +75,16 @@ export type Database = {
           scheduled_time?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

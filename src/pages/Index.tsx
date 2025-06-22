@@ -10,6 +10,8 @@ import { Send, Calendar as CalendarIcon, Settings, List, Clock, CheckCircle, Ale
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { UserMenu } from '@/components/auth/UserMenu';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 export interface Post {
   id: string;
@@ -19,6 +21,7 @@ export interface Post {
   status: 'scheduled' | 'sent' | 'failed';
   created_at: string;
   chat_id?: string;
+  user_id?: string;
 }
 
 export interface BotConfig {
@@ -33,19 +36,32 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [sendingPosts, setSendingPosts] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   // Load data from Supabase
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   const loadData = async () => {
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Пожалуйста, войдите в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // Load posts
+      // Load posts for current user
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (postsError) throw postsError;
@@ -58,15 +74,17 @@ const Index = () => {
           scheduled_time: post.scheduled_time,
           status: post.status as 'scheduled' | 'sent' | 'failed',
           created_at: post.created_at,
-          chat_id: post.chat_id || undefined
+          chat_id: post.chat_id || undefined,
+          user_id: post.user_id || undefined
         }));
         setPosts(typedPosts);
       }
 
-      // Load bot config
+      // Load bot config for current user
       const { data: configData, error: configError } = await supabase
         .from('bot_configs')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -91,15 +109,25 @@ const Index = () => {
 
   // Save bot config to Supabase
   const saveBotConfig = async (config: BotConfig) => {
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Пожалуйста, войдите в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Delete existing configs and insert new one
-      await supabase.from('bot_configs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      // Delete existing configs for this user and insert new one
+      await supabase.from('bot_configs').delete().eq('user_id', user.id);
       
       const { error } = await supabase
         .from('bot_configs')
         .insert([{
           token: config.token,
-          chat_id: config.chat_id
+          chat_id: config.chat_id,
+          user_id: user.id
         }]);
 
       if (error) throw error;
@@ -120,7 +148,16 @@ const Index = () => {
   };
 
   // Add new post to Supabase
-  const addPost = async (postData: Omit<Post, 'id' | 'created_at' | 'status'>) => {
+  const addPost = async (postData: Omit<Post, 'id' | 'created_at' | 'status' | 'user_id'>) => {
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Пожалуйста, войдите в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('posts')
@@ -129,7 +166,8 @@ const Index = () => {
           image_url: postData.image_url,
           scheduled_time: postData.scheduled_time,
           chat_id: botConfig.chat_id,
-          status: 'scheduled'
+          status: 'scheduled',
+          user_id: user.id
         }])
         .select()
         .single();
@@ -143,7 +181,8 @@ const Index = () => {
         scheduled_time: data.scheduled_time,
         status: data.status as 'scheduled' | 'sent' | 'failed',
         created_at: data.created_at,
-        chat_id: data.chat_id
+        chat_id: data.chat_id,
+        user_id: data.user_id
       };
 
       setPosts(prev => [newPost, ...prev]);
@@ -166,11 +205,21 @@ const Index = () => {
 
   // Update post in Supabase
   const updatePost = async (postId: string, updates: Partial<Post>) => {
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Пожалуйста, войдите в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('posts')
         .update(updates)
-        .eq('id', postId);
+        .eq('id', postId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -194,11 +243,21 @@ const Index = () => {
 
   // Delete post from Supabase
   const deletePost = async (postId: string) => {
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Пожалуйста, войдите в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('posts')
         .delete()
-        .eq('id', postId);
+        .eq('id', postId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -220,9 +279,21 @@ const Index = () => {
 
   // Manually trigger sending posts (for testing)
   const sendScheduledPosts = async () => {
+    if (!user) {
+      toast({
+        title: "Ошибка авторизации",
+        description: "Пожалуйста, войдите в систему",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSendingPosts(true);
     try {
-      const { data, error } = await supabase.functions.invoke('send-telegram-message');
+      // Передаем ID пользователя в функцию для обработки только его постов
+      const { data, error } = await supabase.functions.invoke('send-telegram-message', {
+        body: { user_id: user.id }
+      });
       
       if (error) throw error;
 
