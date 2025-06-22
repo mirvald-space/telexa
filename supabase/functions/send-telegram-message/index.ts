@@ -101,10 +101,13 @@ serve(async (req) => {
               bytes[i] = binaryString.charCodeAt(i)
             }
 
+            // Преобразуем переносы строк в теги <br>
+            const contentWithLineBreaks = post.content.replace(/\n/g, '<br>')
+
             // Create form data for photo upload
             const formData = new FormData()
             formData.append('chat_id', chatId)
-            formData.append('caption', post.content)
+            formData.append('caption', contentWithLineBreaks)
             formData.append('parse_mode', 'HTML')
             formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png')
 
@@ -115,11 +118,14 @@ serve(async (req) => {
           } else {
             console.log('Sending URL image for post:', post.id)
             
+            // Преобразуем переносы строк в теги <br>
+            const contentWithLineBreaks = post.content.replace(/\n/g, '<br>')
+            
             // Handle regular URL image
             const photoData = {
               chat_id: chatId,
               photo: post.image_url,
-              caption: post.content,
+              caption: contentWithLineBreaks,
               parse_mode: 'HTML'
             }
 
@@ -132,10 +138,13 @@ serve(async (req) => {
         } else {
           console.log('Sending text message for post:', post.id)
           
+          // Преобразуем переносы строк в теги <br>
+          const contentWithLineBreaks = post.content.replace(/\n/g, '<br>')
+          
           // Send text message
           const messageData = {
             chat_id: chatId,
-            text: post.content,
+            text: contentWithLineBreaks,
             parse_mode: 'HTML'
           }
 
