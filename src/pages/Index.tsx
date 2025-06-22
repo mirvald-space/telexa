@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Send, Calendar as CalendarIcon, Settings, List, Clock, CheckCircle, AlertCircle, Plus, Activity, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { UserMenu } from '@/components/auth/UserMenu';
 
 export interface Post {
   id: string;
@@ -279,228 +280,289 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center">
-                <Bot className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">TeleAI Poster</h1>
-                <p className="text-sm text-gray-500">Автоматизируйте посты в вашем канале</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Badge variant={isConnected ? 'default' : 'destructive'} className="text-xs">
-                <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                {isConnected ? 'Подключено' : 'Не подключено'}
-              </Badge>
-              
-              <Button 
-                onClick={sendScheduledPosts}
-                disabled={sendingPosts || scheduledCount === 0}
-                className="bg-gray-900 hover:bg-gray-800"
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Хедер с навигацией и профилем */}
+      <header className="border-b bg-card shadow-sm">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold tracking-tight">TelePost Scheduler</h1>
+            <div className="lg:flex gap-2 items-center hidden">
+              <Button
+                variant={activeView === 'dashboard' ? 'default' : 'ghost'}
                 size="sm"
+                onClick={() => setActiveView('dashboard')}
               >
-                {sendingPosts ? 'Отправка...' : 'Отправить текущие посты'}
+                <Activity className="h-4 w-4 mr-2" />
+                Дашборд
+              </Button>
+              <Button
+                variant={activeView === 'posts' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveView('posts')}
+              >
+                <List className="h-4 w-4 mr-2" />
+                Посты
+              </Button>
+              <Button
+                variant={activeView === 'calendar' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveView('calendar')}
+              >
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Календарь
+              </Button>
+              <Button
+                variant={activeView === 'settings' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveView('settings')}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Настройки
               </Button>
             </div>
           </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={sendScheduledPosts} disabled={sendingPosts}>
+              {sendingPosts ? (
+                <Clock className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              Отправить запланированные
+            </Button>
+            <UserMenu />
+          </div>
+        </div>
+        
+        {/* Мобильная навигация */}
+        <div className="flex lg:hidden border-t overflow-x-auto">
+          <Button
+            variant={activeView === 'dashboard' ? 'default' : 'ghost'}
+            className="flex-1 rounded-none"
+            onClick={() => setActiveView('dashboard')}
+          >
+            <Activity className="h-4 w-4 mr-2" />
+            Дашборд
+          </Button>
+          <Button
+            variant={activeView === 'posts' ? 'default' : 'ghost'}
+            className="flex-1 rounded-none"
+            onClick={() => setActiveView('posts')}
+          >
+            <List className="h-4 w-4 mr-2" />
+            Посты
+          </Button>
+          <Button
+            variant={activeView === 'calendar' ? 'default' : 'ghost'}
+            className="flex-1 rounded-none"
+            onClick={() => setActiveView('calendar')}
+          >
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Календарь
+          </Button>
+          <Button
+            variant={activeView === 'settings' ? 'default' : 'ghost'}
+            className="flex-1 rounded-none"
+            onClick={() => setActiveView('settings')}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Настройки
+          </Button>
         </div>
       </header>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveView(item.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  activeView === item.id
-                    ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Dashboard View */}
-        {activeView === 'dashboard' && (
-          <div className="space-y-8">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="border-gray-200 bg-white">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Запланировано</CardTitle>
-                    <Clock className="h-5 w-5 text-gray-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{scheduledCount}</div>
-                  <p className="text-sm text-gray-500 mt-1">Готово к отправке</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-gray-200 bg-white">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Отправлено</CardTitle>
-                    <CheckCircle className="h-5 w-5 text-gray-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{sentCount}</div>
-                  <p className="text-sm text-gray-500 mt-1">Успешно доставлено</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-gray-200 bg-white">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">С ошибками</CardTitle>
-                    <AlertCircle className="h-5 w-5 text-gray-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{failedCount}</div>
-                  <p className="text-sm text-gray-500 mt-1">Требуют внимания</p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-gray-200 bg-white">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Всего</CardTitle>
-                    <List className="h-5 w-5 text-gray-400" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{posts.length}</div>
-                  <p className="text-sm text-gray-500 mt-1">Все посты</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Recent Posts Preview */}
-            {posts.length > 0 && (
-              <Card className="border-gray-200 bg-white mt-6">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Недавние посты</CardTitle>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setActiveView('posts')}
-                    >
-                      Смотреть все
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {posts.slice(0, 3).map((post) => (
-                      <div key={post.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {post.content.slice(0, 60)}...
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(post.scheduled_time).toLocaleString()}
-                          </p>
-                        </div>
-                        <Badge 
-                          variant={post.status === 'sent' ? 'default' : post.status === 'failed' ? 'destructive' : 'secondary'}
-                          className="ml-3"
-                        >
-                          {post.status === 'scheduled' ? 'запланирован' : 
-                           post.status === 'sent' ? 'отправлен' : 'ошибка'}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+      
+      {/* Контент */}
+      <main className="flex-1 overflow-auto bg-muted/40 p-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Navigation */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveView(item.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
+                    activeView === item.id
+                      ? 'bg-white text-gray-900 shadow-sm border border-gray-200'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {/* Other Views */}
-        {activeView === 'editor' && (
-          <Card className="border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-900">
-                <Send className="w-5 h-5 text-gray-600" />
-                <span>Создать новый пост</span>
-              </CardTitle>
-              <CardDescription>Запланировать новое сообщение для вашего Телеграм-канала</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PostEditor onSubmit={addPost} />
-            </CardContent>
-          </Card>
-        )}
+          {/* Dashboard View */}
+          {activeView === 'dashboard' && (
+            <div className="space-y-8">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card className="border-gray-200 bg-white">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-600">Запланировано</CardTitle>
+                      <Clock className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-gray-900">{scheduledCount}</div>
+                    <p className="text-sm text-gray-500 mt-1">Готово к отправке</p>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-gray-200 bg-white">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-600">Отправлено</CardTitle>
+                      <CheckCircle className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-gray-900">{sentCount}</div>
+                    <p className="text-sm text-gray-500 mt-1">Успешно доставлено</p>
+                  </CardContent>
+                </Card>
 
-        {activeView === 'posts' && (
-          <Card className="border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-900">
-                <List className="w-5 h-5 text-gray-600" />
-                <span>Все посты</span>
-              </CardTitle>
-              <CardDescription>Управление запланированными и отправленными постами</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScheduledPosts 
-                posts={posts} 
-                onUpdate={updatePost} 
-                onDelete={deletePost} 
-              />
-            </CardContent>
-          </Card>
-        )}
+                <Card className="border-gray-200 bg-white">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-600">С ошибками</CardTitle>
+                      <AlertCircle className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-gray-900">{failedCount}</div>
+                    <p className="text-sm text-gray-500 mt-1">Требуют внимания</p>
+                  </CardContent>
+                </Card>
 
-        {activeView === 'calendar' && (
-          <Card className="border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-900">
-                <CalendarIcon className="w-5 h-5 text-gray-600" />
-                <span>Календарь</span>
-              </CardTitle>
-              <CardDescription>Визуальный обзор ваших запланированных постов</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
-            </CardContent>
-          </Card>
-        )}
+                <Card className="border-gray-200 bg-white">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-600">Всего</CardTitle>
+                      <List className="h-5 w-5 text-gray-400" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-gray-900">{posts.length}</div>
+                    <p className="text-sm text-gray-500 mt-1">Все посты</p>
+                  </CardContent>
+                </Card>
+              </div>
 
-        {activeView === 'settings' && (
-          <Card className="border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-gray-900">
-                <Settings className="w-5 h-5 text-gray-600" />
-                <span>Настройки бота</span>
-              </CardTitle>
-              <CardDescription>Настройка подключения вашего Телеграм-бота</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <BotSettings config={botConfig} onSave={saveBotConfig} />
-            </CardContent>
-          </Card>
-        )}
-      </div>
+              {/* Recent Posts Preview */}
+              {posts.length > 0 && (
+                <Card className="border-gray-200 bg-white mt-6">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Недавние посты</CardTitle>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setActiveView('posts')}
+                      >
+                        Смотреть все
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {posts.slice(0, 3).map((post) => (
+                        <div key={post.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {post.content.slice(0, 60)}...
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(post.scheduled_time).toLocaleString()}
+                            </p>
+                          </div>
+                          <Badge 
+                            variant={post.status === 'sent' ? 'default' : post.status === 'failed' ? 'destructive' : 'secondary'}
+                            className="ml-3"
+                          >
+                            {post.status === 'scheduled' ? 'запланирован' : 
+                             post.status === 'sent' ? 'отправлен' : 'ошибка'}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {/* Other Views */}
+          {activeView === 'editor' && (
+            <Card className="border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-gray-900">
+                  <Send className="w-5 h-5 text-gray-600" />
+                  <span>Создать новый пост</span>
+                </CardTitle>
+                <CardDescription>Запланировать новое сообщение для вашего Телеграм-канала</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PostEditor onSubmit={addPost} />
+              </CardContent>
+            </Card>
+          )}
+
+          {activeView === 'posts' && (
+            <Card className="border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-gray-900">
+                  <List className="w-5 h-5 text-gray-600" />
+                  <span>Все посты</span>
+                </CardTitle>
+                <CardDescription>Управление запланированными и отправленными постами</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScheduledPosts 
+                  posts={posts} 
+                  onUpdate={updatePost} 
+                  onDelete={deletePost} 
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          {activeView === 'calendar' && (
+            <Card className="border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-gray-900">
+                  <CalendarIcon className="w-5 h-5 text-gray-600" />
+                  <span>Календарь</span>
+                </CardTitle>
+                <CardDescription>Визуальный обзор ваших запланированных постов</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
+              </CardContent>
+            </Card>
+          )}
+
+          {activeView === 'settings' && (
+            <Card className="border-gray-200 bg-white">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-gray-900">
+                  <Settings className="w-5 h-5 text-gray-600" />
+                  <span>Настройки бота</span>
+                </CardTitle>
+                <CardDescription>Настройка подключения вашего Телеграм-бота</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <BotSettings config={botConfig} onSave={saveBotConfig} />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
