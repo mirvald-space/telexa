@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Settings, Bot, MessageCircle, Eye, EyeOff, ExternalLink, Info } from 'lucide-react';
+import { Bot, MessageCircle, ExternalLink, Info, AlertTriangle } from 'lucide-react';
 import type { BotConfig } from '@/pages/Index';
 
 interface BotSettingsProps {
@@ -14,34 +14,37 @@ interface BotSettingsProps {
 
 export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
   const [chatId, setChatId] = useState(config.chat_id);
-  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSave = () => {
-    onSave({ token: config.token, chat_id: chatId });
+  const validateChatId = (id: string): boolean => {
+    // Public channel username format: @channel_name
+    const usernameRegex = /^@[a-zA-Z][a-zA-Z0-9_]{3,}$/;
+    
+    // Private channel/group ID format: -100xxxxxxxxxx
+    const privateIdRegex = /^-100\d{9,}$/;
+    
+    return usernameRegex.test(id) || privateIdRegex.test(id);
   };
 
-  const testConnection = async () => {
+  const handleChatIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setChatId(value);
+    setErrorMessage(null);
+  };
+
+  const handleSave = () => {
     if (!chatId) {
-      alert('Пожалуйста, укажите ID канала/чата');
+      setErrorMessage("Пожалуйста, укажите ID канала/чата");
       return;
     }
     
-    setIsTestingConnection(true);
-    try {
-      // Проверяем, что бот добавлен в канал
-      const response = await fetch(`/api/test-connection?chatId=${encodeURIComponent(chatId)}`);
-      const data = await response.json();
-      
-      if (data.ok) {
-        alert(`✅ Соединение успешно! Бот имеет доступ к каналу/чату.`);
-      } else {
-        alert(`❌ Соединение не удалось: ${data.error || 'Бот не имеет доступа к каналу/чату'}`);
-      }
-    } catch (error) {
-      alert(`❌ Соединение не удалось: ${error}`);
-    } finally {
-      setIsTestingConnection(false);
+    if (!validateChatId(chatId)) {
+      setErrorMessage("Неверный формат ID. Используйте @username для публичных каналов или -100xxxxxxxxxx для приватных");
+      return;
     }
+    
+    onSave({ token: config.token, chat_id: chatId });
+    setErrorMessage(null);
   };
 
   return (
@@ -70,10 +73,18 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
             <Input
               id="chatId"
               value={chatId}
-              onChange={(e) => setChatId(e.target.value)}
-              placeholder="@your_channel или -1001234567890"
+              onChange={handleChatIdChange}
+              placeholder="@your_channel или -100xxxxxxxxxx"
               className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
             />
+            {errorMessage && (
+              <Alert className="mt-2 bg-red-100 border-red-200 text-red-800">
+                <AlertDescription className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  {errorMessage}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -84,18 +95,10 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
             >
               Сохранить настройки
             </Button>
-            <Button
-              onClick={testConnection}
-              disabled={!chatId || isTestingConnection}
-              variant="outline"
-              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
-            >
-              {isTestingConnection ? 'Проверка...' : 'Проверить соединение'}
-            </Button>
           </div>
 
           {/* Status */}
-          {config.chat_id && (
+          {config.chat_id && !errorMessage && (
             <Alert className="bg-green-100 border-green-200 text-green-800">
               <AlertDescription>
                 ✅ Канал настроен и готов к отправке сообщений.
@@ -117,6 +120,7 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
               <li>Найдите в Telegram бота <strong>@telexapost_bot</strong></li>
               <li>Добавьте его в ваш канал как администратора</li>
               <li>Дайте боту права на публикацию сообщений</li>
+              <li><strong>Важно:</strong> Без добавления бота в канал отправка сообщений не будет работать</li>
             </ul>
           </div>
         
@@ -124,7 +128,8 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
             <h3 className="font-semibold text-gray-900 mb-2">2. Получите ID вашего канала/чата</h3>
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
               <li>Для публичных каналов: используйте @username_канала</li>
-              <li>Для приватных каналов/групп: используйте числовой ID (например, -1001234567890)</li>
+              <li>Для приватных каналов/групп: используйте числовой ID в формате -100xxxxxxxxxx</li>
+              <li><strong>Важно:</strong> ID приватного канала всегда начинается с -100, за которым следуют 9+ цифр</li>
             </ul>
           </div>
 
@@ -133,7 +138,7 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
               <li>Добавьте @userinfobot в ваш канал</li>
               <li>Перешлите сообщение из вашего канала боту @userinfobot</li>
-              <li>Он покажет вам ID канала</li>
+              <li>Он покажет вам ID канала (добавьте -100 перед полученным числом)</li>
               <li>Или используйте: <code className="bg-gray-100 px-1 rounded">https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code></li>
             </ul>
           </div>
