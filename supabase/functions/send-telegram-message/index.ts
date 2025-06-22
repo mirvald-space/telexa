@@ -1,6 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Define the Post interface to match the database schema
+interface Post {
+  id: string;
+  content: string;
+  image_url?: string;
+  image_urls?: string[] | string; // Can be array or string depending on how it's returned from DB
+  scheduled_time: string;
+  status: 'scheduled' | 'sent' | 'failed';
+  created_at: string;
+  chat_id?: string;
+  user_id?: string;
+}
+
+// Define the result item interface
+interface ResultItem {
+  postId: string;
+  status: string;
+  error?: string;
+  messageId?: number;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -34,7 +55,7 @@ serve(async (req) => {
 
     console.log('Checking for posts scheduled at or before:', nowISO)
 
-    const { data: posts, error: fetchError } = await supabase
+    const { data: postsData, error: fetchError } = await supabase
       .from('posts')
       .select('*')
       .eq('status', 'scheduled')
@@ -48,21 +69,51 @@ serve(async (req) => {
       })
     }
 
-    console.log('Found posts to send:', posts?.length || 0)
+    console.log('Found posts to send:', postsData?.length || 0)
 
-    if (!posts || posts.length === 0) {
+    if (!postsData || postsData.length === 0) {
       return new Response(JSON.stringify({ message: 'No posts to send', results: [] }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const results = []
+    // Convert the posts data to our Post interface
+    const posts: Post[] = postsData.map(post => ({
+      id: post.id,
+      content: post.content,
+      image_url: post.image_url,
+      image_urls: post.image_urls,
+      scheduled_time: post.scheduled_time,
+      status: post.status,
+      created_at: post.created_at,
+      chat_id: post.chat_id,
+      user_id: post.user_id
+    }));
+
+    const results: ResultItem[] = []
 
     // Send each post
     for (const post of posts) {
       try {
         console.log('Processing post:', post.id, 'scheduled for:', post.scheduled_time)
+        console.log('Post image_urls:', post.image_urls, 'Type:', typeof post.image_urls)
+        
+        // Ensure image_urls is properly parsed as an array
+        if (post.image_urls && typeof post.image_urls === 'string') {
+          try {
+            post.image_urls = JSON.parse(post.image_urls as string) as string[];
+            console.log('Parsed image_urls from string:', post.image_urls);
+          } catch (e) {
+            console.error('Failed to parse image_urls as JSON:', e);
+            // If it fails to parse as JSON, try to see if it's a PostgreSQL array format
+            if (typeof post.image_urls === 'string' && post.image_urls.startsWith('{') && post.image_urls.endsWith('}')) {
+              // Convert PostgreSQL array format to JS array
+              post.image_urls = post.image_urls.slice(1, -1).split(',').map(url => url.replace(/^"|"$/g, ''));
+              console.log('Parsed image_urls from PostgreSQL array format:', post.image_urls);
+            }
+          }
+        }
         
         let telegramResponse
         // Use post-specific chat_id
@@ -91,8 +142,10 @@ serve(async (req) => {
         // Проверяем наличие изображений
         const hasLegacyImage = post.image_url && post.image_url.trim() !== '';
         const hasImages = Array.isArray(post.image_urls) && post.image_urls.length > 0;
+        
+        console.log('Has legacy image:', hasLegacyImage, 'Has images array:', hasImages);
 
-        if (hasImages) {
+        if (hasImages && Array.isArray(post.image_urls)) {
           // Используем новое поле image_urls (массив)
           if (post.image_urls.length === 1) {
             // Если только одно изображение, используем sendPhoto
@@ -252,7 +305,7 @@ serve(async (req) => {
               });
             }
           }
-        } else if (hasLegacyImage) {
+        } else if (hasLegacyImage && post.image_url) {
           // Обратная совместимость со старым полем image_url
           if (post.image_url.startsWith('data:image/')) {
             console.log('Sending legacy base64 image for post:', post.id);
