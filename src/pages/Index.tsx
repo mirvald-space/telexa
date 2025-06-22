@@ -316,7 +316,7 @@ const Index = () => {
   const isConnected = botConfig.token && botConfig.chat_id;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <main className="flex max-w-4xl flex-col mx-auto">
       {/* Хедер с навигацией и профилем */}
       <Header 
         activeView={activeView}
@@ -324,8 +324,6 @@ const Index = () => {
       />
       
       {/* Контент */}
-      <main className="flex-1 overflow-auto bg-muted/40 p-4">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Dashboard View */}
           {activeView === 'dashboard' && (
             <div className="space-y-8">
@@ -412,9 +410,7 @@ const Index = () => {
               </CardContent>
             </Card>
           )}
-        </div>
-      </main>
-    </div>
+    </main>
   );
 };
 
