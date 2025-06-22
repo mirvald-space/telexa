@@ -121,20 +121,29 @@ async function processPost(post: Post, botToken: string, supabase: any): Promise
   }
 
   try {
-    const parsedImageUrls = parseImageUrls(image_urls);
-    const hasLegacyImage = image_url?.trim();
-    const hasImages = parsedImageUrls.length > 0;
+    let imageUrls = [];
+
+    // If image_urls array exists, use it
+    if (Array.isArray(post.image_urls) && post.image_urls.length > 0) {
+      imageUrls = post.image_urls;
+    } 
+    // If legacy image_url exists, convert it to an array with one element
+    else if (post.image_url && post.image_url.trim() !== '') {
+      imageUrls = [post.image_url];
+    }
+
+    const hasImages = imageUrls.length > 0;
     
     let telegramResponse;
     
     if (hasImages) {
-      if (parsedImageUrls.length === 1) {
-        telegramResponse = await sendPhoto(botToken, chat_id, parsedImageUrls[0], content);
+      if (imageUrls.length === 1) {
+        telegramResponse = await sendPhoto(botToken, chat_id, imageUrls[0], content);
       } else {
-        telegramResponse = await sendMediaGroup(botToken, chat_id, parsedImageUrls, content);
+        telegramResponse = await sendMediaGroup(botToken, chat_id, imageUrls, content);
       }
-    } else if (hasLegacyImage) {
-      telegramResponse = await sendPhoto(botToken, chat_id, image_url!, content);
+    } else if (image_url && image_url.trim() !== '') {
+      telegramResponse = await sendPhoto(botToken, chat_id, image_url, content);
     } else {
       telegramResponse = await sendMessage(botToken, chat_id, content);
     }
