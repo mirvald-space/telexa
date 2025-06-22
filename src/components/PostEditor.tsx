@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, Calendar, Clock, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DateTimePicker } from '@/components/ui/datetime-picker';
 
 interface PostEditorProps {
   onSubmit: (post: {
@@ -19,7 +20,7 @@ interface PostEditorProps {
 export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [scheduledTime, setScheduledTime] = useState('');
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [chatId, setChatId] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -87,7 +88,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       return;
     }
 
-    if (!scheduledTime) {
+    if (!scheduledDate) {
       toast({
         title: "Требуется время публикации",
         description: "Пожалуйста, выберите время публикации поста.",
@@ -96,8 +97,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       return;
     }
 
-    const scheduleDate = new Date(scheduledTime);
-    if (scheduleDate <= new Date()) {
+    if (scheduledDate <= new Date()) {
       toast({
         title: "Неверное время публикации",
         description: "Пожалуйста, выберите дату и время в будущем.",
@@ -109,22 +109,16 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     onSubmit({
       content,
       image_url: imageUrl || undefined,
-      scheduled_time: scheduledTime,
+      scheduled_time: scheduledDate.toISOString(),
       chat_id: chatId || undefined,
     });
 
     // Reset form
     setContent('');
     setImageUrl('');
-    setScheduledTime('');
+    setScheduledDate(undefined);
     setChatId('');
   };
-
-  // Set minimum datetime to current time
-  const now = new Date();
-  const minDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-    .toISOString()
-    .slice(0, 16);
 
   return (
     <div className="space-y-6">
@@ -229,17 +223,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
                 <Calendar className="w-4 h-4" />
                 Время публикации
               </Label>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-400" />
-                <Input
-                  id="scheduledTime"
-                  type="datetime-local"
-                  value={scheduledTime}
-                  onChange={(e) => setScheduledTime(e.target.value)}
-                  min={minDateTime}
-                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
-                />
-              </div>
+              <DateTimePicker date={scheduledDate} setDate={setScheduledDate} />
             </div>
 
             {/* Submit Button */}
@@ -274,9 +258,9 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
                   Отправка в: {chatId}
                 </div>
               )}
-              {scheduledTime && (
+              {scheduledDate && (
                 <div className="text-sm text-gray-500 mt-2">
-                  Запланировано на: {new Date(scheduledTime).toLocaleString()}
+                  Запланировано на: {scheduledDate.toLocaleString()}
                 </div>
               )}
             </div>
