@@ -576,18 +576,7 @@ const Index = () => {
 
           {/* Other Views */}
           {activeView === 'editor' && (
-            <Card className="border-gray-200 bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-gray-900">
-                  <Send className="w-5 h-5 text-gray-600" />
-                  <span>Создать новый пост</span>
-                </CardTitle>
-                <CardDescription>Запланировать новое сообщение для вашего Телеграм-канала</CardDescription>
-              </CardHeader>
-              <CardContent>
                 <PostEditor onSubmit={addPost} />
-              </CardContent>
-            </Card>
           )}
 
           {activeView === 'posts' && (
