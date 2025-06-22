@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { monthNames } from './calendarUtils';
 
 interface CalendarHeaderProps {
@@ -19,7 +19,6 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     <div className="pb-4">
       <div className="flex items-center justify-between">
         <div className="text-gray-900 flex items-center gap-2 text-lg font-semibold">
-          <CalendarIcon className="w-5 h-5" />
           Календарь
         </div>
         <div className="flex items-center gap-2">
