@@ -226,6 +226,9 @@ serve(async (req) => {
         user_id: postData.user_id
       };
       
+      // Преобразуем переносы строк в теги <br>
+      const contentWithLineBreaks = post.content.replace(/\n/g, '<br>');
+      
       const result = await processPost(post, botToken, supabase);
       results.push(result);
     }
