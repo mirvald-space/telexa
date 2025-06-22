@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { PostEditor } from '@/components/PostEditor';
 import { ScheduledPosts } from '@/components/ScheduledPosts';
 import { Calendar as ScheduleCalendar } from '@/components/ScheduleCalendar';
-import { Button } from '@/components/ui/button';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, List, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Header } from '@/components/layout/Header';
+import { StatsGrid } from '@/components/dashboard/StatsGrid';
 
 export interface Post {
   id: string;
@@ -328,59 +328,12 @@ const Index = () => {
           {activeView === 'dashboard' && (
             <div className="space-y-8">
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="border-gray-200 bg-white">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-gray-600">Запланировано</CardTitle>
-                      <Clock className="h-5 w-5 text-gray-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-gray-900">{scheduledCount}</div>
-                    <p className="text-sm text-gray-500 mt-1">Готово к отправке</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-gray-200 bg-white">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-gray-600">Отправлено</CardTitle>
-                      <CheckCircle className="h-5 w-5 text-gray-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-gray-900">{sentCount}</div>
-                    <p className="text-sm text-gray-500 mt-1">Успешно доставлено</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-gray-200 bg-white">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-gray-600">С ошибками</CardTitle>
-                      <AlertCircle className="h-5 w-5 text-gray-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-gray-900">{failedCount}</div>
-                    <p className="text-sm text-gray-500 mt-1">Требуют внимания</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-gray-200 bg-white">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-gray-600">Всего</CardTitle>
-                      <List className="h-5 w-5 text-gray-400" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold text-gray-900">{posts.length}</div>
-                    <p className="text-sm text-gray-500 mt-1">Все посты</p>
-                  </CardContent>
-                </Card>
-              </div>
+              <StatsGrid 
+                scheduledCount={scheduledCount}
+                sentCount={sentCount}
+                failedCount={failedCount}
+                totalCount={posts.length}
+              />
 
               {/* Schedule Calendar */}
               <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
