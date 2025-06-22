@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Bot, MessageCircle, ExternalLink, Info, AlertTriangle } from 'lucide-react';
+import { MessageCircle, ExternalLink, Info, AlertTriangle } from 'lucide-react';
 import type { BotConfig } from '@/pages/Index';
 
 interface BotSettingsProps {
@@ -51,8 +51,7 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
     <div className="space-y-6">
       <Card className="bg-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-gray-900 flex items-center gap-2">
-            <Bot className="w-5 h-5" />
+          <CardTitle className="text-gray-900">
             Конфигурация бота
           </CardTitle>
         </CardHeader>
@@ -91,9 +90,9 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
           <div className="flex gap-3">
             <Button
               onClick={handleSave}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="bg-[#0088cc] hover:bg-[#0077b6] text-white"
             >
-              Сохранить настройки
+              Сохранить
             </Button>
           </div>
 

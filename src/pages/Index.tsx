@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { PostEditor } from '@/components/PostEditor';
 import { ScheduledPosts } from '@/components/ScheduledPosts';
 import { Calendar as ScheduleCalendar } from '@/components/ScheduleCalendar';
@@ -28,6 +29,7 @@ export interface BotConfig {
 }
 
 const Index = () => {
+  const location = useLocation();
   const [activeView, setActiveView] = useState('dashboard');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,15 @@ const Index = () => {
   });
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Обработка параметра view из URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const viewParam = params.get('view');
+    if (viewParam && ['dashboard', 'posts', 'editor'].includes(viewParam)) {
+      setActiveView(viewParam);
+    }
+  }, [location.search]);
 
   // Load data from Supabase
   useEffect(() => {

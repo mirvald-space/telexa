@@ -32,12 +32,18 @@ export const Header: React.FC<HeaderProps> = ({
             Telexa
           </h1>
           
-          {showNavigation && isMainPage && (
+          {showNavigation && (
             <div className="lg:flex gap-2 items-center hidden">
               <Button
                 variant={activeView === 'dashboard' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => onViewChange && onViewChange('dashboard')}
+                onClick={() => {
+                  if (isMainPage) {
+                    onViewChange && onViewChange('dashboard');
+                  } else {
+                    navigate('/');
+                  }
+                }}
               >
                 <Activity className="h-4 w-4 mr-2" />
                 Дашборд
@@ -45,7 +51,13 @@ export const Header: React.FC<HeaderProps> = ({
               <Button
                 variant={activeView === 'posts' ? 'default' : 'ghost'}
                 size="sm"
-                onClick={() => onViewChange && onViewChange('posts')}
+                onClick={() => {
+                  if (isMainPage) {
+                    onViewChange && onViewChange('posts');
+                  } else {
+                    navigate('/?view=posts');
+                  }
+                }}
               >
                 <List className="h-4 w-4 mr-2" />
                 Посты
@@ -55,11 +67,17 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {isMainPage && onViewChange && (
+          {showNavigation && (
             <Button
               className="bg-[#0088cc] hover:bg-[#0077b6] text-white"
               size="sm"
-              onClick={() => onViewChange('editor')}
+              onClick={() => {
+                if (isMainPage) {
+                  onViewChange && onViewChange('editor');
+                } else {
+                  navigate('/?view=editor');
+                }
+              }}
             >
               <Plus className="h-4 w-4 mr-2" />
               Создать пост
@@ -69,19 +87,31 @@ export const Header: React.FC<HeaderProps> = ({
 
       </div>
       
-      {showNavigation && isMainPage && (
+      {showNavigation && (
         <div className="flex lg:hidden border-t overflow-x-auto">
           <Button
             variant={activeView === 'dashboard' ? 'default' : 'ghost'}
             className="flex-1 rounded-none"
-            onClick={() => onViewChange && onViewChange('dashboard')}
+            onClick={() => {
+              if (isMainPage) {
+                onViewChange && onViewChange('dashboard');
+              } else {
+                navigate('/');
+              }
+            }}
           >
             <Activity className="h-4 w-4 mr-2" />
             Дашборд
           </Button>
           <Button
             className="flex-1 rounded-none bg-[#0088cc] hover:bg-[#0077b6] text-white"
-            onClick={() => onViewChange && onViewChange('editor')}
+            onClick={() => {
+              if (isMainPage) {
+                onViewChange && onViewChange('editor');
+              } else {
+                navigate('/?view=editor');
+              }
+            }}
           >
             <Plus className="h-4 w-4 mr-2" />
             Создать
@@ -89,7 +119,13 @@ export const Header: React.FC<HeaderProps> = ({
           <Button
             variant={activeView === 'posts' ? 'default' : 'ghost'}
             className="flex-1 rounded-none"
-            onClick={() => onViewChange && onViewChange('posts')}
+            onClick={() => {
+              if (isMainPage) {
+                onViewChange && onViewChange('posts');
+              } else {
+                navigate('/?view=posts');
+              }
+            }}
           >
             <List className="h-4 w-4 mr-2" />
             Посты
