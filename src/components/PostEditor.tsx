@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,8 +52,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Invalid file type",
-        description: "Please upload an image file.",
+        title: "Неверный тип файла",
+        description: "Пожалуйста, загрузите файл изображения.",
         variant: "destructive",
       });
       return;
@@ -66,8 +65,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       if (e.target?.result) {
         setImageUrl(e.target.result as string);
         toast({
-          title: "Image uploaded",
-          description: "Your image has been added to the post.",
+          title: "Изображение загружено",
+          description: "Ваше изображение было добавлено в пост.",
         });
       }
     };
@@ -79,8 +78,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     
     if (!content.trim()) {
       toast({
-        title: "Content required",
-        description: "Please enter some content for your post.",
+        title: "Требуется содержание",
+        description: "Пожалуйста, введите содержание для вашего поста.",
         variant: "destructive",
       });
       return;
@@ -88,8 +87,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
     if (!scheduledTime) {
       toast({
-        title: "Schedule time required",
-        description: "Please select when to publish this post.",
+        title: "Требуется время публикации",
+        description: "Пожалуйста, выберите время публикации поста.",
         variant: "destructive",
       });
       return;
@@ -98,8 +97,8 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     const scheduleDate = new Date(scheduledTime);
     if (scheduleDate <= new Date()) {
       toast({
-        title: "Invalid schedule time",
-        description: "Please select a future date and time.",
+        title: "Неверное время публикации",
+        description: "Пожалуйста, выберите дату и время в будущем.",
         variant: "destructive",
       });
       return;
@@ -125,40 +124,40 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/5 backdrop-blur-md border-white/10">
+      <Card className="bg-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-gray-900 flex items-center gap-2">
             <ImageIcon className="w-5 h-5" />
-            Create New Post
+            Создать новый пост
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Content Editor */}
             <div className="space-y-2">
-              <Label htmlFor="content" className="text-white">Post Content</Label>
+              <Label htmlFor="content" className="text-gray-700">Содержание поста</Label>
               <Textarea
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your post content here... You can use Telegram formatting like *bold* and _italic_"
-                className="min-h-[120px] bg-white/10 border-white/20 text-white placeholder:text-purple-300 focus:border-purple-400"
+                placeholder="Напишите содержание вашего поста здесь... Вы можете использовать форматирование Telegram как *жирный* и _курсив_"
+                className="min-h-[120px] bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
                 maxLength={4096}
               />
-              <div className="text-right text-sm text-purple-300">
-                {content.length}/4096 characters
+              <div className="text-right text-sm text-gray-600">
+                {content.length}/4096 символов
               </div>
             </div>
 
             {/* Image Upload Area */}
             <div className="space-y-2">
-              <Label className="text-white">Image (Optional)</Label>
+              <Label className="text-gray-700">Изображение (опционально)</Label>
               <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
                   dragActive
-                    ? 'border-purple-400 bg-purple-500/20'
-                    : 'border-white/30 bg-white/5'
-                } hover:border-purple-400 hover:bg-purple-500/10`}
+                    ? 'border-blue-400 bg-blue-50'
+                    : 'border-gray-300 bg-gray-50'
+                } hover:border-blue-400 hover:bg-blue-50`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -168,30 +167,30 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
                   <div className="space-y-4">
                     <img
                       src={imageUrl}
-                      alt="Upload preview"
+                      alt="Предпросмотр загрузки"
                       className="max-h-48 mx-auto rounded-lg shadow-lg"
                     />
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setImageUrl('')}
-                      className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
                     >
-                      Remove Image
+                      Удалить изображение
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <Upload className="w-12 h-12 mx-auto text-purple-300" />
+                    <Upload className="w-12 h-12 mx-auto text-gray-400" />
                     <div>
-                      <p className="text-white mb-2">Drag & drop an image here, or</p>
+                      <p className="text-gray-700 mb-2">Перетащите изображение сюда, или</p>
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => fileInputRef.current?.click()}
-                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                        className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
                       >
-                        Choose File
+                        Выберите файл
                       </Button>
                     </div>
                   </div>
@@ -206,29 +205,31 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
               </div>
             </div>
 
-            {/* Schedule Time */}
+            {/* Schedule Datetime */}
             <div className="space-y-2">
-              <Label htmlFor="schedule" className="text-white flex items-center gap-2">
+              <Label htmlFor="scheduledTime" className="text-gray-700 flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                Schedule Time
+                Время публикации
               </Label>
-              <Input
-                id="schedule"
-                type="datetime-local"
-                value={scheduledTime}
-                min={minDateTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="bg-white/10 border-white/20 text-white focus:border-purple-400"
-              />
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-gray-400" />
+                <Input
+                  id="scheduledTime"
+                  type="datetime-local"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  min={minDateTime}
+                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
+                />
+              </div>
             </div>
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 transition-all duration-200 transform hover:scale-105"
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
-              <Clock className="w-4 h-4 mr-2" />
-              Schedule Post
+              Запланировать пост
             </Button>
           </form>
         </CardContent>
@@ -236,27 +237,27 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
 
       {/* Preview Card */}
       {(content || imageUrl) && (
-        <Card className="bg-white/5 backdrop-blur-md border-white/10">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white text-lg">Preview</CardTitle>
+            <CardTitle className="text-gray-900 text-lg">Предпросмотр</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="bg-white/10 rounded-lg p-4 space-y-3">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               {imageUrl && (
                 <img
                   src={imageUrl}
-                  alt="Post preview"
+                  alt="Предпросмотр поста"
                   className="w-full max-w-md rounded-lg shadow-lg"
                 />
               )}
               {content && (
-                <p className="text-white whitespace-pre-wrap">
+                <p className="text-gray-900 whitespace-pre-wrap">
                   {content}
                 </p>
               )}
               {scheduledTime && (
-                <div className="text-sm text-purple-300 border-t border-white/10 pt-3 mt-3">
-                  📅 Scheduled for: {new Date(scheduledTime).toLocaleString()}
+                <div className="text-sm text-gray-600 border-t border-gray-200 pt-3 mt-3">
+                  📅 Запланировано на: {new Date(scheduledTime).toLocaleString()}
                 </div>
               )}
             </div>

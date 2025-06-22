@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,8 +37,8 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
 
     if (!editContent.trim()) {
       toast({
-        title: "Content required",
-        description: "Please enter some content for your post.",
+        title: "Требуется содержание",
+        description: "Пожалуйста, введите содержание для вашего поста.",
         variant: "destructive",
       });
       return;
@@ -48,8 +47,8 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
     const scheduleDate = new Date(editScheduledTime);
     if (scheduleDate <= new Date() && editingPost.status === 'scheduled') {
       toast({
-        title: "Invalid schedule time",
-        description: "Please select a future date and time for scheduled posts.",
+        title: "Неверное время публикации",
+        description: "Пожалуйста, выберите дату и время в будущем для запланированных постов.",
         variant: "destructive",
       });
       return;
@@ -66,7 +65,7 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
   };
 
   const handleDelete = (postId: string) => {
-    if (confirm('Are you sure you want to delete this post?')) {
+    if (confirm('Вы уверены, что хотите удалить этот пост?')) {
       onDelete(postId);
     }
   };
@@ -87,13 +86,13 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
   const getStatusColor = (status: Post['status']) => {
     switch (status) {
       case 'scheduled':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'sent':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'failed':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -110,34 +109,35 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Scheduled Posts</h2>
-        <div className="text-purple-300">
-          {posts.length} post{posts.length !== 1 ? 's' : ''} total
+        <h2 className="text-2xl font-bold text-gray-900">Запланированные посты</h2>
+        <div className="text-gray-600">
+          {posts.length} пост{posts.length !== 1 ? 'ов' : ''}
         </div>
       </div>
 
       {sortedPosts.length === 0 ? (
-        <Card className="bg-white/5 backdrop-blur-md border-white/10">
+        <Card className="bg-white border-gray-200">
           <CardContent className="py-12 text-center">
-            <Send className="w-12 h-12 mx-auto text-purple-300 mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No posts yet</h3>
-            <p className="text-purple-300">
-              Create your first scheduled post using the editor tab.
+            <Send className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Пока нет постов</h3>
+            <p className="text-gray-600">
+              Создайте свой первый запланированный пост с помощью редактора.
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
           {sortedPosts.map((post) => (
-            <Card key={post.id} className="bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 transition-all duration-200">
+            <Card key={post.id} className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-200">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Badge className={`${getStatusColor(post.status)} border flex items-center gap-1`}>
                       {getStatusIcon(post.status)}
-                      {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                      {post.status === 'scheduled' ? 'Запланирован' : 
+                       post.status === 'sent' ? 'Отправлен' : 'Ошибка'}
                     </Badge>
-                    <div className="text-purple-300 text-sm flex items-center gap-1">
+                    <div className="text-gray-600 text-sm flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
                       {new Date(post.scheduled_time).toLocaleString()}
                     </div>
@@ -150,50 +150,50 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={() => handleEdit(post)}
-                            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                            className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-gray-900 border-white/20 text-white max-w-2xl">
+                        <DialogContent className="bg-white border-gray-200 text-gray-900 max-w-2xl">
                           <DialogHeader>
-                            <DialogTitle>Edit Scheduled Post</DialogTitle>
+                            <DialogTitle>Редактировать запланированный пост</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="edit-content">Content</Label>
+                              <Label htmlFor="edit-content" className="text-gray-700">Содержание</Label>
                               <Textarea
                                 id="edit-content"
                                 value={editContent}
                                 onChange={(e) => setEditContent(e.target.value)}
-                                className="min-h-[120px] bg-white/10 border-white/20 text-white"
+                                className="min-h-[120px] bg-gray-50 border-gray-300 text-gray-900"
                                 maxLength={4096}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="edit-schedule">Schedule Time</Label>
+                              <Label htmlFor="edit-schedule" className="text-gray-700">Время публикации</Label>
                               <Input
                                 id="edit-schedule"
                                 type="datetime-local"
                                 value={editScheduledTime}
                                 min={minDateTime}
                                 onChange={(e) => setEditScheduledTime(e.target.value)}
-                                className="bg-white/10 border-white/20 text-white"
+                                className="bg-gray-50 border-gray-300 text-gray-900"
                               />
                             </div>
                             <div className="flex gap-2 justify-end">
                               <Button
                                 variant="outline"
                                 onClick={() => setEditingPost(null)}
-                                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
                               >
-                                Cancel
+                                Отмена
                               </Button>
                               <Button
                                 onClick={handleSaveEdit}
-                                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                               >
-                                Save Changes
+                                Сохранить изменения
                               </Button>
                             </div>
                           </div>
@@ -204,7 +204,7 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(post.id)}
-                      className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+                      className="bg-white border-gray-300 text-red-600 hover:bg-red-50 hover:border-red-300"
                     >
                       <Trash className="w-4 h-4" />
                     </Button>
@@ -212,23 +212,23 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {post.image_url && (
-                    <img
-                      src={post.image_url}
-                      alt="Post image"
-                      className="w-full max-w-sm rounded-lg shadow-lg"
-                    />
-                  )}
-                  <p className="text-white whitespace-pre-wrap break-words">
-                    {post.content}
-                  </p>
-                  <div className="flex items-center justify-between text-sm text-purple-300 border-t border-white/10 pt-3">
-                    <span>Created: {new Date(post.created_at).toLocaleString()}</span>
-                    {post.chat_id && (
-                      <span>Chat ID: {post.chat_id}</span>
-                    )}
+                <div className="space-y-4">
+                  <div className="prose prose-sm max-w-none text-gray-900">
+                    {post.content.split('\n').map((line, idx) => (
+                      <p key={idx} className="mb-2">
+                        {line}
+                      </p>
+                    ))}
                   </div>
+                  {post.image_url && (
+                    <div className="mt-4">
+                      <img
+                        src={post.image_url}
+                        alt="Изображение поста"
+                        className="rounded-lg max-h-64 mx-auto"
+                      />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,12 +32,12 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
       const data = await response.json();
       
       if (data.ok) {
-        alert(`✅ Connection successful! Bot: @${data.result.username}`);
+        alert(`✅ Соединение успешно! Бот: @${data.result.username}`);
       } else {
-        alert(`❌ Connection failed: ${data.description}`);
+        alert(`❌ Соединение не удалось: ${data.description}`);
       }
     } catch (error) {
-      alert(`❌ Connection failed: ${error}`);
+      alert(`❌ Соединение не удалось: ${error}`);
     } finally {
       setIsTestingConnection(false);
     }
@@ -46,19 +45,19 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-white/5 backdrop-blur-md border-white/10">
+      <Card className="bg-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
+          <CardTitle className="text-gray-900 flex items-center gap-2">
             <Bot className="w-5 h-5" />
-            Bot Configuration
+            Конфигурация бота
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Bot Token */}
           <div className="space-y-2">
-            <Label htmlFor="token" className="text-white flex items-center gap-2">
+            <Label htmlFor="token" className="text-gray-700 flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              Bot Token
+              Токен бота
             </Label>
             <div className="relative">
               <Input
@@ -67,14 +66,14 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 placeholder="1234567890:ABCdefGHIjklMNOpqrSTUvwxYZ123456789"
-                className="bg-white/10 border-white/20 text-white placeholder:text-purple-300 focus:border-purple-400 pr-10"
+                className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400 pr-10"
               />
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowToken(!showToken)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-purple-300 hover:text-white hover:bg-white/10"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
               >
                 {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </Button>
@@ -83,16 +82,16 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
 
           {/* Chat ID */}
           <div className="space-y-2">
-            <Label htmlFor="chatId" className="text-white flex items-center gap-2">
+            <Label htmlFor="chatId" className="text-gray-700 flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
-              Channel/Chat ID
+              ID канала/чата
             </Label>
             <Input
               id="chatId"
               value={chatId}
               onChange={(e) => setChatId(e.target.value)}
-              placeholder="@your_channel or -1001234567890"
-              className="bg-white/10 border-white/20 text-white placeholder:text-purple-300 focus:border-purple-400"
+              placeholder="@your_channel или -1001234567890"
+              className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
             />
           </div>
 
@@ -100,25 +99,25 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
           <div className="flex gap-3">
             <Button
               onClick={handleSave}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
-              Save Configuration
+              Сохранить настройки
             </Button>
             <Button
               onClick={testConnection}
               disabled={!token || isTestingConnection}
               variant="outline"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
             >
-              {isTestingConnection ? 'Testing...' : 'Test Connection'}
+              {isTestingConnection ? 'Проверка...' : 'Проверить соединение'}
             </Button>
           </div>
 
           {/* Status */}
           {config.token && config.chat_id && (
-            <Alert className="bg-green-500/20 border-green-500/30 text-green-300">
+            <Alert className="bg-green-100 border-green-200 text-green-800">
               <AlertDescription>
-                ✅ Bot is configured and ready to send messages.
+                ✅ Бот настроен и готов к отправке сообщений.
               </AlertDescription>
             </Alert>
           )}
@@ -126,52 +125,52 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
       </Card>
 
       {/* Instructions */}
-      <Card className="bg-white/5 backdrop-blur-md border-white/10">
+      <Card className="bg-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-white">Setup Instructions</CardTitle>
+          <CardTitle className="text-gray-900">Инструкции по настройке</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-purple-200">
+        <CardContent className="space-y-4 text-gray-700">
           <div>
-            <h3 className="font-semibold text-white mb-2">1. Create a Telegram Bot</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">1. Создайте Telegram-бота</h3>
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
-              <li>Open Telegram and search for @BotFather</li>
-              <li>Send /newbot command</li>
-              <li>Choose a name and username for your bot</li>
-              <li>Copy the bot token (looks like: 1234567890:ABCdef...)</li>
+              <li>Откройте Telegram и найдите @BotFather</li>
+              <li>Отправьте команду /newbot</li>
+              <li>Выберите имя и username для вашего бота</li>
+              <li>Скопируйте токен бота (выглядит как: 1234567890:ABCdef...)</li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold text-white mb-2">2. Get Your Channel/Chat ID</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">2. Получите ID вашего канала/чата</h3>
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
-              <li>For public channels: Use @channel_username</li>
-              <li>For private channels/groups: Use the numeric ID (e.g., -1001234567890)</li>
-              <li>Add your bot to the channel as an administrator</li>
-              <li>Give the bot permission to post messages</li>
+              <li>Для публичных каналов: используйте @username_канала</li>
+              <li>Для приватных каналов/групп: используйте числовой ID (например, -1001234567890)</li>
+              <li>Добавьте вашего бота в канал как администратора</li>
+              <li>Дайте боту разрешение на публикацию сообщений</li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold text-white mb-2">3. Finding Numeric Chat ID</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">3. Как найти числовой ID чата</h3>
             <ul className="space-y-1 text-sm list-disc list-inside ml-4">
-              <li>Add @userinfobot to your channel</li>
-              <li>Forward a message from your channel to @userinfobot</li>
-              <li>It will show you the channel ID</li>
-              <li>Or use: <code className="bg-white/10 px-1 rounded">https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code></li>
+              <li>Добавьте @userinfobot в ваш канал</li>
+              <li>Перешлите сообщение из вашего канала боту @userinfobot</li>
+              <li>Он покажет вам ID канала</li>
+              <li>Или используйте: <code className="bg-gray-100 px-1 rounded">https://api.telegram.org/bot&lt;TOKEN&gt;/getUpdates</code></li>
             </ul>
           </div>
 
-          <Alert className="bg-blue-500/20 border-blue-500/30 text-blue-300">
+          <Alert className="bg-blue-100 border-blue-200 text-blue-800">
             <AlertDescription className="flex items-center gap-2">
               <ExternalLink className="w-4 h-4" />
-              Need help? Check the 
+              Нужна помощь? Посмотрите 
               <a 
                 href="https://core.telegram.org/bots/api" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="underline hover:text-blue-200"
+                className="underline hover:text-blue-600 ml-1"
               >
-                Telegram Bot API documentation
+                документацию Telegram Bot API
               </a>
             </AlertDescription>
           </Alert>

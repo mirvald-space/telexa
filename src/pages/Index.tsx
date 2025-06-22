@@ -79,8 +79,8 @@ const Index = () => {
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
-        title: "Error loading data",
-        description: "Failed to load posts and settings from database.",
+        title: "Ошибка загрузки данных",
+        description: "Не удалось загрузить посты и настройки из базы данных.",
         variant: "destructive",
       });
     } finally {
@@ -105,14 +105,14 @@ const Index = () => {
 
       setBotConfig(config);
       toast({
-        title: "Bot settings saved",
-        description: "Your Telegram bot configuration has been updated.",
+        title: "Настройки бота сохранены",
+        description: "Конфигурация вашего Telegram-бота была обновлена.",
       });
     } catch (error) {
       console.error('Error saving bot config:', error);
       toast({
-        title: "Error saving settings",
-        description: "Failed to save bot configuration to database.",
+        title: "Ошибка сохранения настроек",
+        description: "Не удалось сохранить конфигурацию бота в базе данных.",
         variant: "destructive",
       });
     }
@@ -148,16 +148,16 @@ const Index = () => {
       setPosts(prev => [newPost, ...prev]);
       
       toast({
-        title: "Post scheduled",
-        description: `Your post has been scheduled for ${new Date(postData.scheduled_time).toLocaleString()}`,
+        title: "Пост запланирован",
+        description: `Ваш пост запланирован на ${new Date(postData.scheduled_time).toLocaleString()}`,
       });
       
       setActiveView('posts');
     } catch (error) {
       console.error('Error adding post:', error);
       toast({
-        title: "Error scheduling post",
-        description: "Failed to save post to database.",
+        title: "Ошибка планирования поста",
+        description: "Не удалось сохранить пост в базе данных.",
         variant: "destructive",
       });
     }
@@ -178,14 +178,14 @@ const Index = () => {
       ));
       
       toast({
-        title: "Post updated",
-        description: "Your post has been successfully updated.",
+        title: "Пост обновлен",
+        description: "Ваш пост был успешно обновлен.",
       });
     } catch (error) {
       console.error('Error updating post:', error);
       toast({
-        title: "Error updating post",
-        description: "Failed to update post in database.",
+        title: "Ошибка обновления поста",
+        description: "Не удалось обновить пост в базе данных.",
         variant: "destructive",
       });
     }
@@ -204,14 +204,14 @@ const Index = () => {
       setPosts(prev => prev.filter(post => post.id !== postId));
       
       toast({
-        title: "Post deleted",
-        description: "The scheduled post has been removed.",
+        title: "Пост удален",
+        description: "Запланированный пост был удален.",
       });
     } catch (error) {
       console.error('Error deleting post:', error);
       toast({
-        title: "Error deleting post",
-        description: "Failed to delete post from database.",
+        title: "Ошибка удаления поста",
+        description: "Не удалось удалить пост из базы данных.",
         variant: "destructive",
       });
     }
@@ -233,20 +233,20 @@ const Index = () => {
         const failedCount = data.results.filter(r => r.status === 'failed').length;
         
         toast({
-          title: "Posts processed",
-          description: `${sentCount} sent successfully, ${failedCount} failed`,
+          title: "Посты обработаны",
+          description: `${sentCount} отправлено успешно, ${failedCount} с ошибками`,
         });
       } else {
         toast({
-          title: "No posts to send",
-          description: "All scheduled posts are either in the future or already sent.",
+          title: "Нет постов для отправки",
+          description: "Все запланированные посты либо в будущем, либо уже отправлены.",
         });
       }
     } catch (error) {
       console.error('Error sending posts:', error);
       toast({
-        title: "Error sending posts",
-        description: "Failed to send scheduled posts. Check your bot configuration.",
+        title: "Ошибка отправки постов",
+        description: "Не удалось отправить запланированные посты. Проверьте конфигурацию бота.",
         variant: "destructive",
       });
     } finally {
@@ -259,7 +259,7 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="flex items-center space-x-3 text-gray-600">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-          <span className="text-lg font-medium">Loading your workspace...</span>
+          <span className="text-lg font-medium">Загрузка вашего рабочего пространства...</span>
         </div>
       </div>
     );
@@ -271,11 +271,11 @@ const Index = () => {
   const isConnected = botConfig.token && botConfig.chat_id;
 
   const navigation = [
-    { id: 'dashboard', label: 'Dashboard', icon: Activity },
-    { id: 'editor', label: 'Create Post', icon: Plus },
-    { id: 'posts', label: 'All Posts', icon: List },
-    { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
-    { id: 'settings', label: 'Bot Settings', icon: Settings },
+    { id: 'dashboard', label: 'Дашборд', icon: Activity },
+    { id: 'editor', label: 'Создать пост', icon: Plus },
+    { id: 'posts', label: 'Все посты', icon: List },
+    { id: 'calendar', label: 'Календарь', icon: CalendarIcon },
+    { id: 'settings', label: 'Настройки бота', icon: Settings },
   ];
 
   return (
@@ -289,15 +289,15 @@ const Index = () => {
                 <Bot className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Telegram Scheduler</h1>
-                <p className="text-sm text-gray-500">Automate your channel posts</p>
+                <h1 className="text-xl font-bold text-gray-900">Телеграм Планировщик</h1>
+                <p className="text-sm text-gray-500">Автоматизируйте посты в вашем канале</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-4">
               <Badge variant={isConnected ? 'default' : 'destructive'} className="text-xs">
                 <div className={`w-2 h-2 rounded-full mr-2 ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                {isConnected ? 'Connected' : 'Not Connected'}
+                {isConnected ? 'Подключено' : 'Не подключено'}
               </Badge>
               
               <Button 
@@ -306,7 +306,7 @@ const Index = () => {
                 className="bg-gray-900 hover:bg-gray-800"
                 size="sm"
               >
-                {sendingPosts ? 'Sending...' : 'Send Due Posts'}
+                {sendingPosts ? 'Отправка...' : 'Отправить текущие посты'}
               </Button>
             </div>
           </div>
@@ -340,149 +340,71 @@ const Index = () => {
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 bg-white">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Scheduled</CardTitle>
+                    <CardTitle className="text-sm font-medium text-gray-600">Запланировано</CardTitle>
                     <Clock className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">{scheduledCount}</div>
-                  <p className="text-sm text-gray-500 mt-1">Ready to send</p>
+                  <p className="text-sm text-gray-500 mt-1">Готово к отправке</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 bg-white">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Sent</CardTitle>
+                    <CardTitle className="text-sm font-medium text-gray-600">Отправлено</CardTitle>
                     <CheckCircle className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">{sentCount}</div>
-                  <p className="text-sm text-gray-500 mt-1">Successfully delivered</p>
+                  <p className="text-sm text-gray-500 mt-1">Успешно доставлено</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 bg-white">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Failed</CardTitle>
+                    <CardTitle className="text-sm font-medium text-gray-600">С ошибками</CardTitle>
                     <AlertCircle className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">{failedCount}</div>
-                  <p className="text-sm text-gray-500 mt-1">Needs attention</p>
+                  <p className="text-sm text-gray-500 mt-1">Требуют внимания</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 bg-white">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">Total</CardTitle>
+                    <CardTitle className="text-sm font-medium text-gray-600">Всего</CardTitle>
                     <List className="h-5 w-5 text-gray-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">{posts.length}</div>
-                  <p className="text-sm text-gray-500 mt-1">All posts</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Plus className="w-5 h-5 text-gray-600" />
-                    <span>Quick Actions</span>
-                  </CardTitle>
-                  <CardDescription>Get started with common tasks</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button 
-                    onClick={() => setActiveView('editor')}
-                    className="w-full justify-start bg-gray-900 hover:bg-gray-800"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Create New Post
-                  </Button>
-                  <Button 
-                    onClick={() => setActiveView('calendar')}
-                    variant="outline"
-                    className="w-full justify-start"
-                  >
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    View Calendar
-                  </Button>
-                  {!isConnected && (
-                    <Button 
-                      onClick={() => setActiveView('settings')}
-                      variant="outline"
-                      className="w-full justify-start"
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Setup Bot Connection
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <CardTitle>Getting Started</CardTitle>
-                  <CardDescription>Setup guide for new users</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-start space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isConnected ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-600'}`}>
-                        1
-                      </div>
-                      <div>
-                        <p className="font-medium">Setup Telegram Bot</p>
-                        <p className="text-gray-500">Create bot via @BotFather and get your token</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">
-                        2
-                      </div>
-                      <div>
-                        <p className="font-medium">Add Bot to Channel</p>
-                        <p className="text-gray-500">Make your bot an admin in your channel</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">
-                        3
-                      </div>
-                      <div>
-                        <p className="font-medium">Start Scheduling</p>
-                        <p className="text-gray-500">Create and schedule your first post</p>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Все посты</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Recent Posts Preview */}
             {posts.length > 0 && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 bg-white mt-6">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Recent Posts</CardTitle>
+                    <CardTitle>Недавние посты</CardTitle>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setActiveView('posts')}
                     >
-                      View All
+                      Смотреть все
                     </Button>
                   </div>
                 </CardHeader>
@@ -502,7 +424,8 @@ const Index = () => {
                           variant={post.status === 'sent' ? 'default' : post.status === 'failed' ? 'destructive' : 'secondary'}
                           className="ml-3"
                         >
-                          {post.status}
+                          {post.status === 'scheduled' ? 'запланирован' : 
+                           post.status === 'sent' ? 'отправлен' : 'ошибка'}
                         </Badge>
                       </div>
                     ))}
@@ -515,13 +438,13 @@ const Index = () => {
 
         {/* Other Views */}
         {activeView === 'editor' && (
-          <Card className="border-gray-200">
+          <Card className="border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900">
                 <Send className="w-5 h-5 text-gray-600" />
-                <span>Create New Post</span>
+                <span>Создать новый пост</span>
               </CardTitle>
-              <CardDescription>Schedule a new message for your Telegram channel</CardDescription>
+              <CardDescription>Запланировать новое сообщение для вашего Телеграм-канала</CardDescription>
             </CardHeader>
             <CardContent>
               <PostEditor onSubmit={addPost} />
@@ -530,13 +453,13 @@ const Index = () => {
         )}
 
         {activeView === 'posts' && (
-          <Card className="border-gray-200">
+          <Card className="border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900">
                 <List className="w-5 h-5 text-gray-600" />
-                <span>All Posts</span>
+                <span>Все посты</span>
               </CardTitle>
-              <CardDescription>Manage your scheduled and sent posts</CardDescription>
+              <CardDescription>Управление запланированными и отправленными постами</CardDescription>
             </CardHeader>
             <CardContent>
               <ScheduledPosts 
@@ -549,13 +472,13 @@ const Index = () => {
         )}
 
         {activeView === 'calendar' && (
-          <Card className="border-gray-200">
+          <Card className="border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900">
                 <CalendarIcon className="w-5 h-5 text-gray-600" />
-                <span>Calendar View</span>
+                <span>Календарь</span>
               </CardTitle>
-              <CardDescription>Visual overview of your scheduled posts</CardDescription>
+              <CardDescription>Визуальный обзор ваших запланированных постов</CardDescription>
             </CardHeader>
             <CardContent>
               <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
@@ -564,13 +487,13 @@ const Index = () => {
         )}
 
         {activeView === 'settings' && (
-          <Card className="border-gray-200">
+          <Card className="border-gray-200 bg-white">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 text-gray-900">
                 <Settings className="w-5 h-5 text-gray-600" />
-                <span>Bot Settings</span>
+                <span>Настройки бота</span>
               </CardTitle>
-              <CardDescription>Configure your Telegram bot connection</CardDescription>
+              <CardDescription>Настройка подключения вашего Телеграм-бота</CardDescription>
             </CardHeader>
             <CardContent>
               <BotSettings config={botConfig} onSave={saveBotConfig} />
