@@ -433,47 +433,6 @@ const Index = () => {
                 </Card>
               </div>
 
-              {/* Recent Posts Preview */}
-              {posts.length > 0 && (
-                <Card className="border-gray-200 bg-white mt-6">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle>Недавние посты</CardTitle>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setActiveView('posts')}
-                      >
-                        Смотреть все
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {posts.slice(0, 3).map((post) => (
-                        <div key={post.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {post.content.slice(0, 60)}...
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(post.scheduled_time).toLocaleString()}
-                            </p>
-                          </div>
-                          <Badge 
-                            variant={post.status === 'sent' ? 'default' : post.status === 'failed' ? 'destructive' : 'secondary'}
-                            className="ml-3"
-                          >
-                            {post.status === 'scheduled' ? 'запланирован' : 
-                             post.status === 'sent' ? 'отправлен' : 'ошибка'}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
               {/* Schedule Calendar */}
               <ScheduleCalendar posts={posts} onPostClick={(post) => setActiveView('posts')} />
             </div>
