@@ -75,7 +75,7 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
     
     // Сохраняем только chat_ids
     const saveConfig = {
-      token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '',
+      token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '',
       chat_ids: validChatIds
     };
     

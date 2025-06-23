@@ -120,7 +120,7 @@ const Index = () => {
         
         // Проверяем наличие chat_ids и токена
         const chatIds = (configData[0] as any).chat_ids || [];
-        const token = (configData[0] as any).token || import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '';
+        const token = (configData[0] as any).token || import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '';
         console.log('Chat IDs from DB:', chatIds, 'Type:', typeof chatIds, 'Length:', chatIds ? chatIds.length : 0);
         console.log('Token from DB:', token);
         
@@ -135,7 +135,7 @@ const Index = () => {
       } else {
         // Если конфигурации нет, устанавливаем дефолтные значения
         const defaultConfig = {
-          token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '', // Используем переменную TELEGRAM_BOT_TOKEN
+          token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '', // Используем переменную TELEGRAM_BOT_TOKEN
           chat_ids: []
         };
         console.log('Setting default bot config:', defaultConfig);
