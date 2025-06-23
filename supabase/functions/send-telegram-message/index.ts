@@ -9,7 +9,7 @@ interface Post {
   scheduled_time: string;
   status: 'scheduled' | 'sent' | 'failed';
   created_at: string;
-  chat_id?: string;
+  chat_ids?: string[];
   user_id?: string;
 }
 
@@ -111,11 +111,11 @@ async function sendMessage(botToken: string, chatId: string, text: string) {
 
 // Обработка одного поста
 async function processPost(post: Post, botToken: string, supabase: any): Promise<ResultItem> {
-  const { id, content, image_url, image_urls, chat_id } = post;
+  const { id, content, image_url, image_urls, chat_ids } = post;
   
   console.log('Processing post:', id);
   
-  if (!chat_id) {
+  if (!chat_ids) {
     await supabase.from('posts').update({ status: 'failed' }).eq('id', id);
     return { postId: id, status: 'failed', error: 'No chat ID specified' };
   }
@@ -138,14 +138,14 @@ async function processPost(post: Post, botToken: string, supabase: any): Promise
     
     if (hasImages) {
       if (imageUrls.length === 1) {
-        telegramResponse = await sendPhoto(botToken, chat_id, imageUrls[0], content);
+        telegramResponse = await sendPhoto(botToken, chat_ids[0], imageUrls[0], content);
       } else {
-        telegramResponse = await sendMediaGroup(botToken, chat_id, imageUrls, content);
+        telegramResponse = await sendMediaGroup(botToken, chat_ids[0], imageUrls, content);
       }
     } else if (image_url && image_url.trim() !== '') {
-      telegramResponse = await sendPhoto(botToken, chat_id, image_url, content);
+      telegramResponse = await sendPhoto(botToken, chat_ids[0], image_url, content);
     } else {
-      telegramResponse = await sendMessage(botToken, chat_id, content);
+      telegramResponse = await sendMessage(botToken, chat_ids[0], content);
     }
 
     const result = await telegramResponse.json();

@@ -193,9 +193,17 @@ export const ScheduledPosts: React.FC<ScheduledPostsProps> = ({
                       {post.status === 'scheduled' ? 'Запланирован' : 
                        post.status === 'sent' ? 'Отправлен' : 'Ошибка'}
                     </Badge>
-                    <div className="text-gray-600 text-sm flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(post.scheduled_time).toLocaleString()}
+                    <div className="flex items-center gap-3">
+                      <div className="text-gray-600 text-sm flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(post.scheduled_time).toLocaleString()}
+                      </div>
+                      {post.chat_ids && post.chat_ids.length > 0 && (
+                        <div className="text-gray-600 text-sm flex items-center gap-1">
+                          <Send className="w-4 h-4" />
+                          {post.chat_ids[0]}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

@@ -10,25 +10,38 @@ import { DateTimePicker } from '@/components/ui/datetime-picker';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TelegramPreview } from './TelegramPreview';
 import { AIContentGenerator } from './AIContentGenerator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PostEditorProps {
   onSubmit: (post: {
     content: string;
     image_urls?: string[];
     scheduled_time: string;
-    chat_id?: string;
+    chat_ids?: string[];
   }) => void;
+  botConfig?: {
+    chat_ids: string[];
+  };
 }
 
-export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
+export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit, botConfig }) => {
   const [content, setContent] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [chatId, setChatId] = useState('');
+  const [selectedChatId, setSelectedChatId] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+
+  // Set default selected channel when botConfig changes
+  React.useEffect(() => {
+    console.log('PostEditor botConfig:', botConfig);
+    if (botConfig?.chat_ids?.length) {
+      console.log('Setting selectedChatId from chat_ids:', botConfig.chat_ids[0]);
+      setSelectedChatId(botConfig.chat_ids[0]);
+    }
+  }, [botConfig]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -130,18 +143,28 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       return;
     }
 
+    if (!selectedChatId) {
+      toast({
+        title: "Выберите канал",
+        description: "Пожалуйста, выберите канал для публикации.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Submitting post with chat_ids:', [selectedChatId]);
+    
     onSubmit({
       content,
       image_urls: imageUrls.length > 0 ? imageUrls : undefined,
       scheduled_time: scheduledDate.toISOString(),
-      chat_id: chatId || undefined,
+      chat_ids: [selectedChatId],
     });
 
     // Reset form
     setContent('');
     setImageUrls([]);
     setScheduledDate(undefined);
-    setChatId('');
   };
 
   // Format text with HTML tags
@@ -206,6 +229,19 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
     });
   };
 
+  // Determine if we have multiple channels configured
+  const hasMultipleChannels = botConfig?.chat_ids && botConfig.chat_ids.length > 1;
+  
+  // Format channel name for display
+  const formatChannelName = (chatId: string) => {
+    if (chatId.startsWith('@')) {
+      return chatId; // Already in a readable format
+    } else if (chatId.startsWith('-100')) {
+      return `Приватный канал (${chatId})`;
+    }
+    return chatId;
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-6">
@@ -221,6 +257,32 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Channel Selector */}
+          {botConfig && (
+            <div className="space-y-2">
+              <Label htmlFor="channel" className="text-gray-700">
+                Выберите канал для публикации
+              </Label>
+              <Select 
+                value={selectedChatId} 
+                onValueChange={setSelectedChatId}
+              >
+                <SelectTrigger className="bg-gray-50 border-gray-300">
+                  <SelectValue placeholder="Выберите канал" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* Логируем опции каналов */}
+                  {(() => { console.log('Rendering channel options:', botConfig.chat_ids); return null; })()}
+                  {botConfig.chat_ids?.map((chatId, index) => (
+                    <SelectItem key={index} value={chatId}>
+                      {formatChannelName(chatId)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
               {/* Content Editor */}
               <div className="space-y-2">
                 <Label htmlFor="content" className="text-gray-700">Содержание поста</Label>
@@ -453,20 +515,6 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
                 )}
               </div>
 
-              {/* Chat ID */}
-              <div className="space-y-2">
-                <Label htmlFor="chatId" className="text-gray-700">  
-                  ID канала/чата (опционально)
-                </Label>
-                <Input
-                  id="chatId"
-                  value={chatId}
-                  onChange={(e) => setChatId(e.target.value)}
-                  placeholder="@your_channel или -1001234567890 (если не указано, используется значение из .env)"
-                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
-                />
-              </div>
-
               {/* Schedule Datetime */}
               <div className="space-y-2">
                 <Label htmlFor="scheduledTime" className="text-gray-700">
@@ -491,7 +539,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ onSubmit }) => {
       <TelegramPreview 
         content={content}
         imageUrls={imageUrls}
-        chatId={chatId}
+        chatId={selectedChatId}
         scheduledDate={scheduledDate}
       />
     </div>

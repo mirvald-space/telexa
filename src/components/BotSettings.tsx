@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MessageCircle, ExternalLink, Info, AlertTriangle } from 'lucide-react';
+import { MessageCircle, ExternalLink, Info, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import type { BotConfig } from '@/pages/Index';
 
 interface BotSettingsProps {
@@ -13,8 +13,16 @@ interface BotSettingsProps {
 }
 
 export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
-  const [chatId, setChatId] = useState(config.chat_id);
+  console.log('BotSettings received config:', config);
+  
+  const [chatIds, setChatIds] = useState<string[]>(config.chat_ids || []);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Обновляем состояние, когда меняется config
+  useEffect(() => {
+    console.log('BotSettings config changed:', config);
+    setChatIds(config.chat_ids || []);
+  }, [config]);
 
   const validateChatId = (id: string): boolean => {
     // Public channel username format: @channel_name
@@ -26,25 +34,60 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
     return usernameRegex.test(id) || privateIdRegex.test(id);
   };
 
-  const handleChatIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setChatId(value);
+  const handleChatIdChange = (index: number, value: string) => {
+    const newChatIds = [...chatIds];
+    newChatIds[index] = value;
+    setChatIds(newChatIds);
     setErrorMessage(null);
   };
 
+  const addChannel = () => {
+    if (chatIds.length < 2) {
+      setChatIds([...chatIds, '']);
+    }
+  };
+
+  const removeChannel = (index: number) => {
+    const newChatIds = [...chatIds];
+    newChatIds.splice(index, 1);
+    setChatIds(newChatIds);
+  };
+
   const handleSave = () => {
-    if (!chatId) {
-      setErrorMessage("Пожалуйста, укажите ID канала/чата");
+    // Фильтруем пустые значения
+    const filteredChatIds = chatIds.filter(id => id.trim() !== '');
+    
+    if (filteredChatIds.length === 0) {
+      setErrorMessage('Пожалуйста, укажите хотя бы один ID канала/чата');
       return;
     }
     
-    if (!validateChatId(chatId)) {
-      setErrorMessage("Неверный формат ID. Используйте @username для публичных каналов или -100xxxxxxxxxx для приватных");
-      return;
+    // Validate all chat IDs
+    for (let i = 0; i < filteredChatIds.length; i++) {
+      if (!validateChatId(filteredChatIds[i])) {
+        setErrorMessage(`Неверный формат ID для канала #${i + 1}. Используйте @username для публичных каналов или -100xxxxxxxxxx для приватных`);
+        return;
+      }
     }
     
-    onSave({ token: config.token, chat_id: chatId });
-    setErrorMessage(null);
+    // Убедимся, что все ID каналов - строки
+    const validChatIds = filteredChatIds.map(id => String(id.trim()));
+    
+    // Сохраняем только chat_ids
+    const saveConfig = {
+      token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '',
+      chat_ids: validChatIds
+    };
+    
+    console.log('BotSettings sending config:', saveConfig);
+    
+    try {
+      onSave(saveConfig);
+      setErrorMessage(null);
+    } catch (error) {
+      console.error('Error saving config:', error);
+      setErrorMessage('Произошла ошибка при сохранении настроек');
+    }
   };
 
   return (
@@ -63,19 +106,48 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
             </AlertDescription>
           </Alert>
           
-          {/* Chat ID */}
-          <div className="space-y-2">
-            <Label htmlFor="chatId" className="text-gray-700 flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              ID вашего канала/чата
-            </Label>
-            <Input
-              id="chatId"
-              value={chatId}
-              onChange={handleChatIdChange}
-              placeholder="@your_channel или -100xxxxxxxxxx"
-              className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
-            />
+          {/* Chat IDs */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-gray-700 flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                ID ваших каналов/чатов (максимум 2)
+              </Label>
+              {chatIds.length < 2 && (
+                <Button 
+                  type="button" 
+                  onClick={addChannel} 
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  <Plus className="w-3 h-3" /> Добавить канал
+                </Button>
+              )}
+            </div>
+
+            {chatIds.map((chatId, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  value={chatId}
+                  onChange={(e) => handleChatIdChange(index, e.target.value)}
+                  placeholder="@your_channel или -100xxxxxxxxxx"
+                  className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-400"
+                />
+                {chatIds.length > 1 && (
+                  <Button 
+                    type="button" 
+                    onClick={() => removeChannel(index)} 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-9 w-9 text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+
             {errorMessage && (
               <Alert className="mt-2 bg-red-100 border-red-200 text-red-800">
                 <AlertDescription className="flex items-center gap-2">
@@ -97,10 +169,10 @@ export const BotSettings: React.FC<BotSettingsProps> = ({ config, onSave }) => {
           </div>
 
           {/* Status */}
-          {config.chat_id && !errorMessage && (
+          {chatIds.length > 0 && !errorMessage && (
             <Alert className="bg-green-100 border-green-200 text-green-800">
               <AlertDescription>
-                ✅ Канал настроен и готов к отправке сообщений.
+                ✅ {chatIds.length > 1 ? 'Каналы настроены' : 'Канал настроен'} и {chatIds.length > 1 ? 'готовы' : 'готов'} к отправке сообщений.
               </AlertDescription>
             </Alert>
           )}

@@ -16,7 +16,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const [botConfig, setBotConfig] = useState<BotConfig>({ token: '@telexapost_bot', chat_id: '' });
+  const [botConfig, setBotConfig] = useState<BotConfig>({ token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '', chat_ids: [] });
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   
@@ -51,9 +51,10 @@ const Profile = () => {
       if (error) throw error;
       
       if (data && data.length > 0) {
+        const chatIds = data[0].chat_ids || [];
         setBotConfig({
-          token: '@telexapost_bot',
-          chat_id: data[0].chat_id
+          token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '',
+          chat_ids: chatIds
         });
       }
     } catch (error) {
@@ -77,16 +78,16 @@ const Profile = () => {
       const { error } = await supabase
         .from('bot_configs')
         .insert([{
-          token: '@telexapost_bot',
-          chat_id: config.chat_id,
+          token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '',
+          chat_ids: config.chat_ids,
           user_id: user.id
         }]);
 
       if (error) throw error;
 
       setBotConfig({
-        token: '@telexapost_bot',
-        chat_id: config.chat_id
+        token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '',
+        chat_ids: config.chat_ids
       });
       
       toast({

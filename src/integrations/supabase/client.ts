@@ -2,8 +2,13 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://kqvpyhjmoasaqxiqbiap.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxdnB5aGptb2FzYXF4aXFiaWFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTUwMTMsImV4cCI6MjA2NTQ3MTAxM30.kkVsZxuTj8dgWEB2UxSixFOgRuDZavWKQC5JCUBB_fs";
+// Получаем URL и ключ из переменных окружения или используем резервные значения
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://kqvpyhjmoasaqxiqbiap.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxdnB5aGptb2FzYXF4aXFiaWFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTUwMTMsImV4cCI6MjA2NTQ3MTAxM30.kkVsZxuTj8dgWEB2UxSixFOgRuDZavWKQC5JCUBB_fs";
+
+// Выводим информацию о подключении для отладки
+console.log("Supabase URL:", SUPABASE_URL);
+console.log("Supabase Key used:", SUPABASE_PUBLISHABLE_KEY ? "Key is defined" : "Key is not defined");
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";

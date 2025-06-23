@@ -23,8 +23,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Проверка текущей сессии пользователя
     const checkUser = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Checking auth session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        
+        console.log('Session data:', session);
         setUser(session?.user || null);
+        
+        if (session?.user) {
+          console.log('User authenticated:', session.user);
+        } else {
+          console.log('No authenticated user found');
+        }
       } catch (error) {
         console.error("Error checking auth session:", error);
       } finally {
@@ -37,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Установка слушателя изменений авторизации
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event, session?.user?.id);
       setUser(session?.user || null);
     });
 

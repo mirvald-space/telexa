@@ -18,13 +18,13 @@ export interface Post {
   scheduled_time: string;
   status: 'scheduled' | 'sent' | 'failed';
   created_at: string;
-  chat_id?: string;
+  chat_ids?: string[];
   user_id?: string;
 }
 
 export interface BotConfig {
   token: string;
-  chat_id: string;
+  chat_ids: string[]; // Единственное поле для хранения каналов
 }
 
 const Index = () => {
@@ -34,7 +34,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [botConfig, setBotConfig] = useState<BotConfig>({
     token: '',
-    chat_id: '',
+    chat_ids: [],
   });
   const { toast } = useToast();
   const { user } = useAuth();
@@ -57,6 +57,7 @@ const Index = () => {
 
   const loadData = async () => {
     if (!user) {
+      console.error('No user found for loadData');
       toast({
         title: "Ошибка авторизации",
         description: "Пожалуйста, войдите в систему",
@@ -65,6 +66,7 @@ const Index = () => {
       return;
     }
 
+    console.log('Loading data for user:', user.id);
     setLoading(true);
     try {
       // Load posts for current user
@@ -74,8 +76,13 @@ const Index = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (postsError) throw postsError;
+      if (postsError) {
+        console.error('Error loading posts:', postsError);
+        throw postsError;
+      }
+      
       if (postsData) {
+        console.log(`Loaded ${postsData.length} posts`);
         // Cast the data to match our Post interface
         const typedPosts: Post[] = postsData.map(post => ({
           id: post.id,
@@ -85,13 +92,14 @@ const Index = () => {
           scheduled_time: post.scheduled_time,
           status: post.status as 'scheduled' | 'sent' | 'failed',
           created_at: post.created_at,
-          chat_id: post.chat_id || undefined,
+          chat_ids: (post as any).chat_ids || undefined,
           user_id: post.user_id || undefined
         }));
         setPosts(typedPosts);
       }
 
       // Load bot config for current user
+      console.log('Loading bot config for user:', user.id);
       const { data: configData, error: configError } = await supabase
         .from('bot_configs')
         .select('*')
@@ -99,24 +107,45 @@ const Index = () => {
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (configError) throw configError;
+      if (configError) {
+        console.error('Error loading bot config:', configError);
+        throw configError;
+      }
+      
+      console.log('Bot config data:', configData);
+      
       if (configData && configData.length > 0) {
-        setBotConfig({
-          token: '@telexapost_bot', // Используем имя бота сервиса
-          chat_id: configData[0].chat_id
-        });
+        // Логируем данные из базы
+        console.log('Config data from DB:', configData[0]);
+        
+        // Проверяем наличие chat_ids и токена
+        const chatIds = (configData[0] as any).chat_ids || [];
+        const token = (configData[0] as any).token || import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '';
+        console.log('Chat IDs from DB:', chatIds, 'Type:', typeof chatIds, 'Length:', chatIds ? chatIds.length : 0);
+        console.log('Token from DB:', token);
+        
+        // Формируем конфиг
+        const newConfig = {
+          token: token, // Используем токен из базы данных
+          chat_ids: chatIds
+        };
+        
+        console.log('Setting bot config:', newConfig);
+        setBotConfig(newConfig);
       } else {
-        // Если конфигурации нет, устанавливаем имя бота сервиса
-        setBotConfig({
-          token: '@telexapost_bot',
-          chat_id: ''
-        });
+        // Если конфигурации нет, устанавливаем дефолтные значения
+        const defaultConfig = {
+          token: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN || '', // Используем переменную TELEGRAM_BOT_TOKEN
+          chat_ids: []
+        };
+        console.log('Setting default bot config:', defaultConfig);
+        setBotConfig(defaultConfig);
       }
     } catch (error) {
       console.error('Error loading data:', error);
       toast({
         title: "Ошибка загрузки данных",
-        description: "Не удалось загрузить посты из базы данных.",
+        description: "Не удалось загрузить данные из базы данных.",
         variant: "destructive",
       });
     } finally {
@@ -124,9 +153,10 @@ const Index = () => {
     }
   };
 
-  // Save bot config to Supabase - только ID канала
+  // Save bot config to Supabase - ID каналов
   const saveBotConfig = async (config: BotConfig) => {
     if (!user) {
+      console.error('No authenticated user found');
       toast({
         title: "Ошибка авторизации",
         description: "Пожалуйста, войдите в систему",
@@ -136,36 +166,60 @@ const Index = () => {
     }
 
     try {
-      // Delete existing configs for this user and insert new one
-      await supabase.from('bot_configs').delete().eq('user_id', user.id);
+      console.log('User ID for saving:', user.id);
       
-      const { error } = await supabase
+      // Проверяем, что chat_ids - это массив строк
+      const chatIdsToSave = Array.isArray(config.chat_ids) ? config.chat_ids.filter(Boolean) : [];
+      
+      if (chatIdsToSave.length === 0) {
+        toast({
+          title: "Ошибка сохранения настроек",
+          description: "Необходимо указать хотя бы один ID канала",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Убедимся, что это массив строк для PostgreSQL
+      const chatIdsArray = chatIdsToSave.map(id => String(id));
+      
+      console.log('Saving bot config with chat_ids:', chatIdsArray);
+      
+      // Напрямую вставляем новую конфигурацию, не удаляя старую
+      const { error: insertError } = await supabase
         .from('bot_configs')
-        .insert([{
-          token: '@telexapost_bot', // Используем имя бота сервиса
-          chat_id: config.chat_id,
+        .insert({
+          token: botConfig.token, // Используем текущий токен из состояния
+          chat_ids: chatIdsArray,
           user_id: user.id
-        }]);
+        });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error('Error inserting bot config:', insertError);
+        throw new Error(`Ошибка при сохранении настроек: ${insertError.message}`);
+      }
 
+      console.log('Bot config saved successfully');
+      
       setBotConfig({
-        token: '@telexapost_bot',
-        chat_id: config.chat_id
+        token: botConfig.token, // Сохраняем текущий токен
+        chat_ids: chatIdsArray
       });
       
       toast({
         title: "Настройки сохранены",
-        description: "ID вашего канала был успешно сохранен.",
+        description: chatIdsArray.length > 1 
+          ? "ID ваших каналов были успешно сохранены." 
+          : "ID вашего канала был успешно сохранен.",
       });
       
       // Reload posts with new config if needed
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving bot config:', error);
       toast({
         title: "Ошибка сохранения настроек",
-        description: "Не удалось сохранить ID канала в базе данных.",
+        description: error.message || "Не удалось сохранить настройки каналов в базе данных.",
         variant: "destructive",
       });
     }
@@ -182,7 +236,7 @@ const Index = () => {
       return;
     }
     
-    if (!botConfig.chat_id && !postData.chat_id) {
+    if (botConfig.chat_ids.length === 0 && !postData.chat_ids) {
       toast({
         title: "Канал не настроен",
         description: "Пожалуйста, укажите ID канала в настройках или при создании поста.",
@@ -192,13 +246,16 @@ const Index = () => {
     }
     
     try {
+      // Определяем ID канала для поста
+      const chatIds = postData.chat_ids || (botConfig.chat_ids.length > 0 ? botConfig.chat_ids : []);
+      
       const { data, error } = await supabase
         .from('posts')
         .insert([{
           content: postData.content,
           image_urls: postData.image_urls,
           scheduled_time: postData.scheduled_time,
-          chat_id: postData.chat_id || botConfig.chat_id, // Используем ID канала из поста или из настроек
+          chat_ids: chatIds,
           status: 'scheduled',
           user_id: user.id
         }])
@@ -214,7 +271,7 @@ const Index = () => {
         scheduled_time: data.scheduled_time,
         status: data.status as 'scheduled' | 'sent' | 'failed',
         created_at: data.created_at,
-        chat_id: data.chat_id,
+        chat_ids: (data as any).chat_ids,
         user_id: data.user_id
       };
 
@@ -324,7 +381,7 @@ const Index = () => {
   const scheduledCount = posts.filter(p => p.status === 'scheduled').length;
   const sentCount = posts.filter(p => p.status === 'sent').length;
   const failedCount = posts.filter(p => p.status === 'failed').length;
-  const isConnected = botConfig.token && botConfig.chat_id;
+  const isConnected = botConfig.token && botConfig.chat_ids.length > 0;
 
   return (
     <main className="flex max-w-4xl flex-col mx-auto">
@@ -353,9 +410,9 @@ const Index = () => {
           )}
 
           {/* Other Views */}
-          {activeView === 'editor' && (
-                <PostEditor onSubmit={addPost} />
-          )}
+                {activeView === 'editor' && (
+        <PostEditor onSubmit={addPost} botConfig={botConfig} />
+      )}
 
           {activeView === 'posts' && (
 

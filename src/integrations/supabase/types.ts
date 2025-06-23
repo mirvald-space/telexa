@@ -11,7 +11,7 @@ export type Database = {
     Tables: {
       bot_configs: {
         Row: {
-          chat_id: string
+          chat_ids: string[] | null
           created_at: string
           id: string
           token: string
@@ -19,7 +19,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          chat_id: string
+          chat_ids?: string[] | null
           created_at?: string
           id?: string
           token: string
@@ -27,7 +27,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          chat_id?: string
+          chat_ids?: string[] | null
           created_at?: string
           id?: string
           token?: string
@@ -45,7 +45,7 @@ export type Database = {
       }
       posts: {
         Row: {
-          chat_id: string | null
+          chat_ids: string[] | null
           content: string
           created_at: string
           id: string
@@ -56,7 +56,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          chat_id?: string | null
+          chat_ids?: string[] | null
           content: string
           created_at?: string
           id?: string
@@ -67,7 +67,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          chat_id?: string | null
+          chat_ids?: string[] | null
           content?: string
           created_at?: string
           id?: string
