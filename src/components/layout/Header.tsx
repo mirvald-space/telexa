@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Activity, Plus, List, Home } from 'lucide-react';
+import { Activity, Plus, List } from 'lucide-react';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -37,14 +37,6 @@ export const Header: React.FC<HeaderProps> = ({
           
           {showNavigation && (
             <div className="lg:flex gap-2 items-center hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-              >
-                <Home className="h-4 w-4 mr-2" />
-                Главная
-              </Button>
               <Button
                 variant={activeView === 'dashboard' ? 'default' : 'ghost'}
                 size="sm"
