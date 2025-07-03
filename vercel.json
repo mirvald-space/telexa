@@ -11,10 +11,10 @@
   },
   "env": {
   },
-  "crons": {
-    "send-scheduled-posts": {
+  "crons": [
+    {
       "path": "/api/send-scheduled-posts",
       "schedule": "0 10 * * *"
     }
-  }
+  ]
 } 
