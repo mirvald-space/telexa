@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { Telegraf, InputFile } from 'telegraf';
+import pkg from 'telegraf';
+const { Telegraf } = pkg;
 import fetch from 'node-fetch';
 
 // Константы
