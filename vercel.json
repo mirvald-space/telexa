@@ -14,7 +14,7 @@
   "crons": {
     "send-scheduled-posts": {
       "path": "/api/send-scheduled-posts",
-      "schedule": "* * * * *"
+      "schedule": "0 10 * * *"
     }
   }
 } 

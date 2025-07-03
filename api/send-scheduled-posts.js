@@ -5,6 +5,7 @@ import { Telegraf } from 'telegraf';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://bqysahcurgznnigptlqf.supabase.co';
 const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN;
+const CRON_SECRET = process.env.CRON_SECRET;
 
 // Функция для обработки массива изображений
 function parseImageUrls(imageUrls) {
@@ -27,9 +28,12 @@ function parseImageUrls(imageUrls) {
 }
 
 export default async function handler(req, res) {
-  // Проверка авторизации (опционально)
+  // Проверка авторизации с CRON_SECRET
   const authHeader = req.headers.authorization;
-  if (process.env.API_SECRET && (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== process.env.API_SECRET)) {
+  
+  // Проверяем авторизацию для запросов от Vercel Cron Jobs
+  if (CRON_SECRET && (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== CRON_SECRET)) {
+    console.log('Unauthorized request - missing or invalid CRON_SECRET');
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
