@@ -58,9 +58,6 @@ VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 SERVICE_ROLE_KEY=your_service_role_key
 
-# Vercel Cron Jobs
-CRON_SECRET=your_cron_secret_key
-
 # xAI API (опционально)
 XAI_API_KEY=your_xai_api_key
 ```
