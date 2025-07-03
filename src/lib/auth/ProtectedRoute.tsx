@@ -5,7 +5,7 @@ type ProtectedRouteProps = {
   redirectTo?: string;
 };
 
-export function ProtectedRoute({ redirectTo = "/auth" }: ProtectedRouteProps) {
+export function ProtectedRoute({ redirectTo = "/" }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
 
   // Показываем спиннер во время проверки состояния аутентификации
@@ -17,7 +17,7 @@ export function ProtectedRoute({ redirectTo = "/auth" }: ProtectedRouteProps) {
     );
   }
 
-  // Если пользователь не авторизован, перенаправляем на страницу входа
+  // Если пользователь не авторизован, перенаправляем на главную страницу
   if (!user) {
     return <Navigate to={redirectTo} replace />;
   }
