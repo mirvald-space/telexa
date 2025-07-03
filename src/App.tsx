@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import PromoPage from "./pages/Promo";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const AppRoutes = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Index />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* Добавьте другие защищенные маршруты здесь */}
         </Route>
         
