@@ -10,11 +10,5 @@
     }
   },
   "env": {
-  },
-  "crons": [
-    {
-      "path": "/api/send-scheduled-posts",
-      "schedule": "0 * * * *"
-    }
-  ]
+  }
 } 

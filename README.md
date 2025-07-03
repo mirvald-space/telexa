@@ -23,7 +23,7 @@
 - **Роутинг**: React Router
 - **Форматирование дат**: date-fns
 - **Управление состоянием**: React Query
-- **Серверные функции**: Supabase Edge Functions (Deno)
+- **Серверные функции**: Vercel API Routes и Cron Jobs
 - **Валидация форм**: React Hook Form, Zod
 - **Визуализация данных**: Recharts
 
@@ -51,12 +51,15 @@ npm run dev
 
 ```
 # Telegram Bot Configuration
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+VITE_TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # Supabase Configuration
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+SERVICE_ROLE_KEY=your_service_role_key
+
+# Vercel Cron Jobs
+CRON_SECRET=your_cron_secret_key
 
 # xAI API (опционально)
 XAI_API_KEY=your_xai_api_key
@@ -121,9 +124,8 @@ src/
 │   ├── Promo           # Промо-страница
 │   └── NotFound        # Страница 404
 └── App.tsx             # Корневой компонент
-supabase/
-├── functions/          # Edge Functions
-│   └── send-telegram-message/ # Функция отправки сообщений в Telegram
+api/
+└── send-scheduled-posts.js # API-эндпоинт для отправки запланированных постов
 ```
 
 ## Функциональность
@@ -141,7 +143,7 @@ supabase/
 - Календарный вид расписания
 
 ### Отправка сообщений
-- Автоматическая отправка в запланированное время
+- Автоматическая отправка в запланированное время через Vercel Cron Jobs
 - Поддержка текстовых сообщений
 - Поддержка одиночных изображений
 - Поддержка групп изображений (медиагрупп)
@@ -150,6 +152,14 @@ supabase/
 - Регистрация и вход через Supabase Auth
 - Защищенные маршруты
 - Управление профилем пользователя
+
+## Автоматическая отправка постов
+
+Для автоматической отправки запланированных постов используется:
+1. API-эндпоинт `/api/send-scheduled-posts`
+2. Vercel Cron Jobs или внешний сервис cron-job.org
+
+Подробная информация о настройке автоматической отправки постов находится в [README-CRON.md](README-CRON.md).
 
 ## Разработка
 
@@ -165,6 +175,9 @@ npm run build:dev
 
 # Предпросмотр собранного проекта
 npm run preview
+
+# Ручной запуск отправки запланированных постов
+npm run send-posts
 ```
 
 ## Лицензия
