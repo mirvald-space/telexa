@@ -1,4 +1,4 @@
-# TelePost Scheduler Bot
+# Telexa
 
 Приложение для планирования и автоматической отправки сообщений в Telegram-каналы.
 
@@ -31,8 +31,8 @@
 
 ```sh
 # Клонирование репозитория
-git clone https://github.com/yourusername/telepost-scheduler-bot.git
-cd telepost-scheduler-bot
+git clone https://github.com/yourusername/telexa.git
+cd telexa
 
 # Установка зависимостей
 npm install
