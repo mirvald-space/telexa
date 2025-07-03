@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Activity, Plus, List, BarChart2 } from 'lucide-react';
+import { Activity, Plus, List } from 'lucide-react';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,6 @@ export const Header: React.FC<HeaderProps> = ({
 
   // Определяем, находимся ли мы на главной странице
   const isMainPage = location.pathname === '/dashboard';
-  const isAnalyticsPage = location.pathname === '/analytics';
 
   return (
     <header className="max-w-4xl flex justify-between w-full mx-auto p-4">
@@ -39,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
           {showNavigation && (
             <div className="lg:flex gap-2 items-center hidden">
               <Button
-                variant={activeView === 'dashboard' && !isAnalyticsPage ? 'default' : 'ghost'}
+                variant={activeView === 'dashboard' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => {
                   if (isMainPage) {
@@ -71,14 +70,6 @@ export const Header: React.FC<HeaderProps> = ({
                   </Badge>
                 )}
               </Button>
-              <Button
-                variant={isAnalyticsPage ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => navigate('/analytics')}
-              >
-                <BarChart2 className="h-4 w-4 mr-2" />
-                Аналитика
-              </Button>
             </div>
           )}
         </div>
@@ -107,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({
       {showNavigation && (
         <div className="flex lg:hidden border-t overflow-x-auto">
           <Button
-            variant={activeView === 'dashboard' && !isAnalyticsPage ? 'default' : 'ghost'}
+            variant={activeView === 'dashboard' ? 'default' : 'ghost'}
             className="flex-1 rounded-none"
             onClick={() => {
               if (isMainPage) {
@@ -151,14 +142,6 @@ export const Header: React.FC<HeaderProps> = ({
                 {postsCount}
               </Badge>
             )}
-          </Button>
-          <Button
-            variant={isAnalyticsPage ? 'default' : 'ghost'}
-            className="flex-1 rounded-none"
-            onClick={() => navigate('/analytics')}
-          >
-            <BarChart2 className="h-4 w-4 mr-2" />
-            Аналитика
           </Button>
         </div>
       )}

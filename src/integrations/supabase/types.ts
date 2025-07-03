@@ -43,52 +43,6 @@ export type Database = {
           }
         ]
       }
-      channel_analytics: {
-        Row: {
-          id: string
-          user_id: string | null
-          channel_id: string
-          channel_title: string | null
-          subscribers_count: number
-          views_count: number
-          posts_count: number
-          average_views: number
-          last_updated: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id?: string | null
-          channel_id: string
-          channel_title?: string | null
-          subscribers_count?: number
-          views_count?: number
-          posts_count?: number
-          average_views?: number
-          last_updated?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string | null
-          channel_id?: string
-          channel_title?: string | null
-          subscribers_count?: number
-          views_count?: number
-          posts_count?: number
-          average_views?: number
-          last_updated?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "channel_analytics_user_id_fkey"
-            columns: ["user_id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       posts: {
         Row: {
           chat_ids: string[] | null
