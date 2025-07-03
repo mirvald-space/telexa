@@ -60,6 +60,7 @@ async function sendPhoto(botToken: string, chatId: string, imageUrl: string, cap
     const formData = new FormData();
     formData.append('chat_id', chatId);
     formData.append('caption', caption);
+    formData.append('parse_mode', 'HTML');
     formData.append('photo', new Blob([bytes], { type: mimeType }), 'image.png');
 
     return fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
@@ -73,7 +74,8 @@ async function sendPhoto(botToken: string, chatId: string, imageUrl: string, cap
       body: JSON.stringify({
         chat_id: chatId,
         photo: imageUrl,
-        caption: caption
+        caption: caption,
+        parse_mode: 'HTML'
       })
     });
   }
@@ -84,7 +86,7 @@ async function sendMediaGroup(botToken: string, chatId: string, imageUrls: strin
   const media = imageUrls.map((url, index) => ({
     type: 'photo' as const,
     media: url,
-    ...(index === 0 ? { caption } : {})
+    ...(index === 0 ? { caption, parse_mode: 'HTML' } : {})
   }));
 
   return fetch(`https://api.telegram.org/bot${botToken}/sendMediaGroup`, {
@@ -104,7 +106,8 @@ async function sendMessage(botToken: string, chatId: string, text: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       chat_id: chatId,
-      text: text
+      text: text,
+      parse_mode: 'HTML'
     })
   });
 }
@@ -231,7 +234,7 @@ serve(async (req) => {
         scheduled_time: postData.scheduled_time,
         status: postData.status,
         created_at: postData.created_at,
-        chat_id: postData.chat_id,
+        chat_ids: postData.chat_ids,
         user_id: postData.user_id
       };
       
