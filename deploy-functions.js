@@ -60,10 +60,11 @@ async function deployFunctions() {
   if (isCI) {
     console.log('Starting scheduler...');
     try {
-      const supabaseUrl = process.env.SUPABASE_URL;
+      // Используем хардкодированный URL вместо переменной окружения
+      const supabaseUrl = "https://bqysahcurgznnigptlqf.supabase.co";
       const serviceRoleKey = process.env.SERVICE_ROLE_KEY;
       
-      if (supabaseUrl && serviceRoleKey) {
+      if (serviceRoleKey) {
         const response = await fetch(`${supabaseUrl}/functions/v1/scheduler`, {
           method: 'POST',
           headers: {
@@ -81,7 +82,7 @@ async function deployFunctions() {
           console.error(`Error starting scheduler: ${response.status} ${response.statusText}`, errorText);
         }
       } else {
-        console.log('Skipping scheduler start: missing environment variables');
+        console.log('Skipping scheduler start: missing SERVICE_ROLE_KEY environment variable');
       }
     } catch (error) {
       console.error('Error starting scheduler:', error);

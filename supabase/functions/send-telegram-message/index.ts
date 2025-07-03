@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.36.0'
 
 interface Post {
   id: string;
@@ -184,13 +184,23 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SERVICE_ROLE_KEY') ?? ''
-    );
+    // Используем хардкодированный URL, так как мы не можем установить переменную SUPABASE_URL
+    const supabaseUrl = "https://bqysahcurgznnigptlqf.supabase.co";
+    const serviceRoleKey = Deno.env.get('SERVICE_ROLE_KEY');
+    
+    if (!serviceRoleKey) {
+      console.error('SERVICE_ROLE_KEY environment variable not set');
+      return new Response(JSON.stringify({ error: 'SERVICE_ROLE_KEY not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
     if (!botToken) {
+      console.error('TELEGRAM_BOT_TOKEN environment variable not set');
       return new Response(JSON.stringify({ error: 'Bot token not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -199,6 +209,9 @@ serve(async (req) => {
 
     const nowISO = new Date().toISOString();
     console.log('Checking for posts scheduled at or before:', nowISO);
+    console.log('Using supabaseUrl:', supabaseUrl);
+    console.log('SERVICE_ROLE_KEY is set:', !!serviceRoleKey);
+    console.log('TELEGRAM_BOT_TOKEN is set:', !!botToken);
 
     const { data: postsData, error: fetchError } = await supabase
       .from('posts')

@@ -17,11 +17,8 @@ const corsHeaders = {
 // Function to call the send-telegram-message function
 async function callSendFunction() {
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    if (!supabaseUrl) {
-      console.error('SUPABASE_URL environment variable not set');
-      return;
-    }
+    // Используем хардкодированный URL, так как мы не можем установить переменную SUPABASE_URL
+    const supabaseUrl = "https://bqysahcurgznnigptlqf.supabase.co";
     
     const serviceRoleKey = Deno.env.get('SERVICE_ROLE_KEY');
     if (!serviceRoleKey) {
@@ -30,6 +27,7 @@ async function callSendFunction() {
     }
 
     // Call the send-telegram-message edge function
+    console.log(`Calling ${supabaseUrl}/functions/v1/send-telegram-message with auth token`);
     const response = await fetch(`${supabaseUrl}/functions/v1/send-telegram-message`, {
       method: 'POST',
       headers: {
@@ -41,6 +39,7 @@ async function callSendFunction() {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Error calling send-telegram-message: ${response.status} ${response.statusText}`, errorText);
+      console.error(`Using SERVICE_ROLE_KEY: ${serviceRoleKey.substring(0, 10)}...`);
       return;
     }
 
@@ -65,6 +64,8 @@ serve(async (req) => {
     const checkInterval = Math.max(10, parseInt(String(interval), 10)) * 1000;
     
     console.log(`Starting scheduler with ${checkInterval / 1000} second interval`);
+    console.log(`SERVICE_ROLE_KEY: ${Deno.env.get('SERVICE_ROLE_KEY') ? 'is set' : 'is NOT set'}`);
+    console.log(`TELEGRAM_BOT_TOKEN: ${Deno.env.get('TELEGRAM_BOT_TOKEN') ? 'is set' : 'is NOT set'}`);
     
     // Initial call
     await callSendFunction();
