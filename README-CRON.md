@@ -14,12 +14,12 @@
 ### 1. Конфигурация в vercel.json
 
 ```json
-"crons": {
-  "send-scheduled-posts": {
+"crons": [
+  {
     "path": "/api/send-scheduled-posts",
     "schedule": "0 10 * * *"
   }
-}
+]
 ```
 
 Расписание "0 10 * * *" означает запуск каждый день в 10:00 UTC.
