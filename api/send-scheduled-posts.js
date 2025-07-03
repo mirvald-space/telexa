@@ -30,9 +30,13 @@ function parseImageUrls(imageUrls) {
 export default async function handler(req, res) {
   // Проверка авторизации с CRON_SECRET
   const authHeader = req.headers.authorization;
+  const queryToken = req.query.token;
   
-  // Проверяем авторизацию для запросов от Vercel Cron Jobs
-  if (CRON_SECRET && (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== CRON_SECRET)) {
+  // Проверяем авторизацию через заголовок Authorization или параметр token
+  const headerToken = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  const isAuthorized = CRON_SECRET && (headerToken === CRON_SECRET || queryToken === CRON_SECRET);
+  
+  if (!isAuthorized) {
     console.log('Unauthorized request - missing or invalid CRON_SECRET');
     return res.status(401).json({ error: 'Unauthorized' });
   }
