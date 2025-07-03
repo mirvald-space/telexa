@@ -17,9 +17,9 @@ export default function Auth() {
   const { user, isLoading } = useAuth();
   const [view, setView] = useState<AuthView>(AuthView.LOGIN);
   
-  // Если пользователь авторизован и загружен, перенаправляем на главную
+  // Если пользователь авторизован и загружен, перенаправляем на дашборд
   if (user && !isLoading) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   // Показываем компонент сброса пароля отдельно

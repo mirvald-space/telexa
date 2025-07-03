@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z.object({
   email: z.string().email("Введите корректный email"),
@@ -33,6 +34,7 @@ type RegisterFormProps = {
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,6 +51,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       await signUp(values.email, values.password);
       form.reset();
       onSuccess?.();
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       // Ошибки уже обрабатываются в контексте аутентификации
     } finally {

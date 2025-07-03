@@ -415,13 +415,12 @@ const Index = () => {
       )}
 
           {activeView === 'posts' && (
-
                 <ScheduledPosts 
                   posts={posts} 
                   onUpdate={updatePost} 
                   onDelete={deletePost} 
+                  botConfig={botConfig}
                 />
-
           )}
     </main>
   );
